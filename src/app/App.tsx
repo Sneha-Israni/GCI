@@ -10773,7 +10773,7 @@ Rules:
               {userData.kycMethod === 'Physical KYC' && 
                messages[messages.length - 1]?.content === 'Please upload the following documents for verification. Make sure to upload your latest documents:' && (
                 <DocumentUpload 
-                  documents={['PAN Card', 'Age Proof', 'Address Proof Document']}
+                  documents={['PAN Card', 'Address Proof Document']}
                   onUpload={handleDocumentUpload}
                   onComplete={handleDocumentUploadComplete}
                   onSkip={handleDocumentUploadSkip}
