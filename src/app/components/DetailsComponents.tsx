@@ -261,60 +261,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
 
         {/* Card 2: Policy Details — only show if at least one policy field is filled */}
         {(userData.policyType || userData.riskTolerance || userData.selectedPlan || userData.riders || userData.policyDuration || userData.premiumPaymentTerm || userData.premiumFrequency || userData.employeeStatus || userData.productOption || userData.productCategory || userData.deathBenefitMultiple) && (
-        <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-          <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-          <div className="overflow-clip rounded-[inherit] size-full">
-                      {/* Header Row */}
-                      <div className="h-[60px] relative shrink-0 w-full">
-                        <div className="flex flex-row items-center size-full">
-                          <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                            <div className="h-[22.5px] relative shrink-0">
-                              <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                  Policy Details
-                                </p>
-                              </div>
-                            </div>
-                            <div className="h-[28px] relative shrink-0 w-[56px]">
-                              <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                <button onClick={onEditPolicy} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                  <div className="size-full">
-                                    <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                      <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                        <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                          <div className="absolute inset-[-5%]">
-                                            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                              <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                            </svg>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </button>
-                                <div className="flex items-center justify-center relative shrink-0">
-                                  <div className="flex-none rotate-[180deg]">
-                                    <div className="relative size-[20px]">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                        <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                            <div className="absolute inset-[-8.33%_-16.67%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Details Rows */}
+        <CollapsibleCard title="Policy Details" isExpanded={expandedCards.policy} onToggle={() => toggleCard('policy')} onEdit={onEditPolicy}>
                       <div className="relative shrink-0 w-full">
                         <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                         <div className="overflow-clip rounded-[inherit] size-full">
@@ -475,8 +422,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                           </div>
                         </div>
                       </div>
-          </div>
-        </div>
+        </CollapsibleCard>
 
         )}
 
@@ -491,60 +437,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
 
         {/* Card 4: Personal Details — only show if user-filled fields exist (nationality is always hardcoded so excluded) */}
         {(userData.fullName || userData.dateOfBirth || userData.placeOfBirth || userData.maritalStatus) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Personal Details
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditPersonalDetails || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Personal Details" isExpanded={expandedCards.personal} onToggle={() => toggleCard('personal')} onEdit={onEditPersonalDetails || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -612,66 +505,12 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 5: Professional Details */}
         {(userData.designation || userData.employerName || userData.industry || userData.occupation || userData.jobDuties || userData.hazardousEnvironment || userData.annualIncome) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Professional Details
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditProfessionalDetails || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Professional Details" isExpanded={expandedCards.professional} onToggle={() => toggleCard('professional')} onEdit={onEditProfessionalDetails || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -763,8 +602,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 6: Family Details */}
@@ -775,60 +613,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
 
         {/* Card 7: Height/Weight */}
         {(userData.height || userData.weight || userData.weightChange) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Height & Weight
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditHeightWeight || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Height & Weight" isExpanded={expandedCards.heightWeight} onToggle={() => toggleCard('heightWeight')} onEdit={onEditHeightWeight || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -872,66 +657,12 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 8: Health Conditions */}
         {(userData.healthConditions && userData.healthConditions.length > 0) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Health Conditions
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditHealthQuestions || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Health Conditions" isExpanded={expandedCards.health} onToggle={() => toggleCard('health')} onEdit={onEditHealthQuestions || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -953,66 +684,12 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 9: Substance Consumption */}
         {(userData.substanceConsumption && userData.substanceConsumption.length > 0) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Substance Consumption
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditSubstances || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Substance Consumption" isExpanded={expandedCards.substances} onToggle={() => toggleCard('substances')} onEdit={onEditSubstances || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -1034,66 +711,12 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 10: Assets */}
         {(userData.assets && userData.assets.length > 0) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Assets
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditAssets || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Assets" isExpanded={expandedCards.assets} onToggle={() => toggleCard('assets')} onEdit={onEditAssets || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -1115,66 +738,12 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
 
         {/* Card 11: Bank Details */}
         {(userData.bankName || userData.accountNumber || userData.ifscCode || userData.branchName) && (
-          <div className="bg-white relative rounded-[16px] shrink-0 w-full">
-            <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
-            <div className="overflow-clip rounded-[inherit] size-full">
-                        {/* Header Row */}
-                        <div className="h-[60px] relative shrink-0 w-full">
-                          <div className="flex flex-row items-center size-full">
-                            <div className="content-stretch flex items-center justify-between px-[16px] py-0 relative size-full">
-                              <div className="h-[22.5px] relative shrink-0">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center relative">
-                                  <p className="font-['Arimo:Bold',sans-serif] font-bold leading-[22.5px] relative shrink-0 text-[#263238] text-[15px] text-center text-nowrap">
-                                    Bank Details
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="h-[28px] relative shrink-0 w-[56px]">
-                                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative size-full">
-                                  <button onClick={onEditBankDetails || (() => {})} className="basis-0 grow h-[28px] min-h-px min-w-px relative rounded-[8px] shrink-0">
-                                    <div className="size-full">
-                                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start pb-0 pt-[6px] px-[6px] relative size-full">
-                                        <div className="h-[16px] overflow-clip relative shrink-0 w-full">
-                                          <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]">
-                                            <div className="absolute inset-[-5%]">
-                                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                                                <path d={svgPathsDetails.p4290a20} stroke="#C21B17" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
-                                              </svg>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <div className="flex items-center justify-center relative shrink-0">
-                                    <div className="flex-none rotate-[180deg]">
-                                      <div className="relative size-[20px]">
-                                        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-                                          <div className="h-[20px] overflow-clip relative shrink-0 w-full">
-                                            <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                                              <div className="absolute inset-[-8.33%_-16.67%]">
-                                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 12">
-                                                  <path d={svgPathsDetails.p324d0480} stroke="#666666" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
-                                                </svg>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Details Rows */}
+          <CollapsibleCard title="Bank Details" isExpanded={expandedCards.bank} onToggle={() => toggleCard('bank')} onEdit={onEditBankDetails || (() => {})}>
                         <div className="relative shrink-0 w-full">
                           <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
                           <div className="overflow-clip rounded-[inherit] size-full">
@@ -1230,8 +799,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
-            </div>
-          </div>
+          </CollapsibleCard>
         )}
       </div>
     </motion.div>
