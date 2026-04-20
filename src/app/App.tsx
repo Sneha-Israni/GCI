@@ -2200,6 +2200,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   // Refs mirror the above — used inside handleSendMessage where React state is stale within the same render
   const step1AgeCapturedRef = useRef(false);
   const step1GenderCapturedRef = useRef(false);
+  // Step 3 cross-turn memory refs (amount and timeframe captured across multiple turns)
+  const step3AmountRef = useRef<string | null>(null);
+  const step3TimeframeRef = useRef<string | null>(null);
   // Holds real-time extracted fields from uploaded documents for in-card preview
   const [documentExtractedData, setDocumentExtractedData] = useState<Record<string, string | null> | null>(null);
   const [showAadhaarSuccessToast, setShowAadhaarSuccessToast] = useState(false);
@@ -6093,6 +6096,29 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
         else if (/\b(male|man|boy|m\b)/i.test(lower)) gender = 'Male';
         return { age: (age && age > 0 && age < 120) ? age : null, gender };
       }
+
+      case 3: { // Goal amount and timeframe — regex fallback when OpenAI is unavailable
+        const lower = userInput.toLowerCase();
+        // Extract amount — handles crore/lakh/lac/lakhs/cr/k patterns
+        let amount: string | null = null;
+        const croreMatch = lower.match(/(\d+(?:\.\d+)?)\s*(?:cr(?:ore)?s?)/);
+        const lakhMatch = lower.match(/(\d+(?:\.\d+)?)\s*(?:lakh(?:s)?|lac(?:s)?)/);
+        const plainNumMatch = userInput.match(/\b(\d{4,})\b/); // bare number >= 4 digits e.g. 100000
+        if (croreMatch) amount = `${croreMatch[1]} crore`;
+        else if (lakhMatch) amount = `${lakhMatch[1]} lakhs`;
+        else if (plainNumMatch) amount = plainNumMatch[1];
+
+        // Extract timeframe — handles "15 years", "15 yrs", "in 15", bare number 1-50
+        let timeframe: string | null = null;
+        const yearsMatch = lower.match(/(\d+)\s*(?:years?|yrs?)/);
+        const inYearsMatch = lower.match(/(?:in|within|over)\s+(\d+)/);
+        const decadeMatch = lower.match(/\ba\s+decade\b/);
+        if (yearsMatch) timeframe = `${yearsMatch[1]} years`;
+        else if (inYearsMatch) timeframe = `${inYearsMatch[1]} years`;
+        else if (decadeMatch) timeframe = '10 years';
+
+        return { amount, timeframe };
+      }
       case 18: // Professional details (employer, designation, occupation)
         return parseProfessionalDetails(userInput);
       
@@ -6532,7 +6558,11 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
 
       32: `You are an intelligent form assistant. Extract current treatment and current health status from the user's free-form message. Examples: "I take a daily inhaler and my condition is well controlled", "on medication condition stable", "no treatment currently feeling fine". Return JSON: {"treatment": "..." or null, "currentStatus": "..." or null}.`,
 
-      3: `You are an intelligent form assistant. Extract the target amount and the timeframe (in years) from the user's free-form message about their financial goal. Examples: "I want to save 1 crore in 20 years", "50 lakhs by 2040", "around 75 lakhs", "in 15 years". Return JSON: {"amount": "<amount as stated, e.g. 1 crore, 50 lakhs>" or null, "timeframe": "<timeframe as stated, e.g. 20 years, by 2040>" or null}.`,
+      3: `You are an intelligent form assistant helping with an Indian insurance onboarding form. Extract two values from the user's message:
+1. "amount" — a financial savings target. Accept any Indian format: "1 cr", "1 crore", "50 lakh", "50 lakhs", "1,00,000", "100000", "a crore", "half a crore". Normalise to a readable string like "1 crore" or "50 lakhs".
+2. "timeframe" — a time period. Accept: "15", "15 years", "15 yrs", "in 15 years", "within 15 years", "a decade" (=10 years), "in 2 years". Normalise to "<number> years" e.g. "15 years".
+Order does not matter — "15 years 1 cr" is valid.
+Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<normalised string or null>"}.`,
 
       34: `You are an intelligent form assistant. Extract bank details from the user's free-form message. The user may write naturally without commas or labels. Examples: "HDFC Bank account 50100123456789 IFSC HDFC0001234 MG Road Bangalore branch", "my bank is SBI account number 12345678 IFSC SBIN0001234 branch Koramangala". Return JSON: {"bankName": "..." or null, "accountNumber": "..." or null, "ifscCode": "..." or null, "branchName": "..." or null}.`,
 
@@ -6717,29 +6747,33 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
               messages[messages.length - 1].content.includes('goal') ||
               messages[messages.length - 1].content.includes('coverage') ||
               messages[messages.length - 1].content.includes('by when') ||
-              messages[messages.length - 1].content.includes('timeframe')))) {
+              messages[messages.length - 1].content.includes('timeframe') ||
+              messages[messages.length - 1].content.includes('how many years') ||
+              messages[messages.length - 1].content.includes('save by then')))) {
       // Use OpenAI to extract amount and timeframe
       const parsedGoal = await parseWithOpenAI(messageText, 3);
 
-      const resolvedAmount = parsedGoal?.amount || (userData as any)._pendingGoalAmount || null;
-      const resolvedTimeframe = parsedGoal?.timeframe || (userData as any)._pendingGoalTimeframe || null;
+      // Update refs synchronously with whatever was just parsed
+      if (parsedGoal?.amount) step3AmountRef.current = parsedGoal.amount;
+      if (parsedGoal?.timeframe) step3TimeframeRef.current = parsedGoal.timeframe;
 
-      // Save whatever was understood
-      if (parsedGoal?.amount) setUserData((prev) => ({ ...prev, _pendingGoalAmount: parsedGoal.amount } as any));
-      if (parsedGoal?.timeframe) setUserData((prev) => ({ ...prev, _pendingGoalTimeframe: parsedGoal.timeframe } as any));
+      // Resolve: use just-parsed value OR what was captured in a prior turn (stored in ref)
+      const resolvedAmount = step3AmountRef.current;
+      const resolvedTimeframe = step3TimeframeRef.current;
+
+      console.log(`📊 Step 3 resolve — amount: ${parsedGoal?.amount}, timeframe: ${parsedGoal?.timeframe}, resolvedAmount: ${resolvedAmount}, resolvedTimeframe: ${resolvedTimeframe}`);
 
       if (!resolvedAmount && !resolvedTimeframe) {
-        // Nothing understood at all
         setTimeout(() => {
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: "I didn't quite catch that. Could you share your target amount and by when you'd like to achieve it?",
+            content: "I didn't quite catch that. Could you share the amount and timeframe? For example: 1 crore in 15 years",
             sender: 'bot',
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('I want to save 1 crore in 20 years');
+          setExampleText('1 crore in 15 years');
         }, 1000);
         return;
       }
@@ -6749,12 +6783,12 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: `Got it, ${resolvedAmount} is your target amount! And by when would you like to achieve this goal?`,
+            content: `Got it, ₹${resolvedAmount}. In how many years do you want to achieve this?`,
             sender: 'bot',
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('In 20 years');
+          setExampleText('15 years');
         }, 1000);
         return;
       }
@@ -6764,7 +6798,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: `Got it, ${resolvedTimeframe}! And what is your target amount?`,
+            content: `Got it, ${resolvedTimeframe}. What is the amount you want to save by then?`,
             sender: 'bot',
             timestamp: new Date(),
           };
@@ -6774,7 +6808,10 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
         return;
       }
 
-      // Both resolved — clear partials and proceed
+      // Both resolved — reset refs and proceed
+      step3AmountRef.current = null;
+      step3TimeframeRef.current = null;
+
       setUserData((prev) => {
         const p = { ...prev } as any;
         delete p._pendingGoalAmount;
@@ -10573,7 +10610,8 @@ Rules:
             <LanguageSelectionScreen onContinue={handleLanguageContinue} />
           ) : (
             <>
-              {/* Progress Stepper */}
+              {/* Progress Stepper — only show on the main chat/onboarding flow */}
+              {currentView === 'chat' && (
               <div className="absolute left-1/2 -translate-x-1/2 top-[67px] z-40">
                 <ProgressStepper
                   key={`step-${displayStep}`}
@@ -10583,6 +10621,7 @@ Rules:
                   className="w-[396px]"
                 />
               </div>
+              )}
 
               {/* Voice Not Supported Banner */}
               {!isVoiceSupported && (
