@@ -2206,6 +2206,12 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   // Holds real-time extracted fields from uploaded documents for in-card preview
   const [documentExtractedData, setDocumentExtractedData] = useState<Record<string, string | null> | null>(null);
   const [showAadhaarSuccessToast, setShowAadhaarSuccessToast] = useState(false);
+  const [showSaveToast, setShowSaveToast] = useState(false);
+
+  const triggerSaveToast = () => {
+    setShowSaveToast(true);
+    setTimeout(() => setShowSaveToast(false), 3000);
+  };
   const [isAddressProofAadhaar, setIsAddressProofAadhaar] = useState<boolean | null>(null);
   
   // Cheque processing state
@@ -11109,6 +11115,7 @@ Rules:
                 onEditPersonalDetails={() => setShowEditPersonalDetailsSheet(true)}
                 onEditProfessionalDetails={() => setShowEditProfessionalDetailsSheet(true)}
                 onEditFamilyDetails={() => setShowEditFamilyDetailsSheet(true)}
+                onEditHeightWeight={() => setShowEditHeightWeightSheet(true)}
               />
             )}
           </AnimatePresence>
@@ -11120,68 +11127,7 @@ Rules:
                 userData={userData}
                 onClose={() => setShowEditSheet(false)}
                 onSave={(newData) => setUserData(newData)}
-                onConfirmChanges={(changes) => {
-                  // Navigate back to chat
-                  setCurrentView('chat');
-                  
-                  // Add bot confirmation message
-                  if (changes.length > 0) {
-                    setTimeout(() => {
-                      const changeText = changes.join(', ');
-                      const botMessage: Message = {
-                        id: Date.now().toString(),
-                        content: `Perfect! I've updated your ${changeText}. These details have been saved.`,
-                        sender: 'bot',
-                        timestamp: new Date(),
-                      };
-                      setMessages((prev) => [...prev, botMessage]);
-                      
-                      // Ask next question based on current step
-                      setTimeout(() => {
-                        let nextQuestion = '';
-                        if (messages.length < 3) {
-                          nextQuestion = 'What are you hoping to achieve with this insurance?';
-                        } else if (messages.length >= 3 && userData.goal) {
-                          // Determine follow-up based on goal
-                          switch (userData.goal) {
-                            case "Save for Kid's Education":
-                              nextQuestion = "Great! How much are you planning to save for your kid's education & by when?";
-                              setExampleText("I am planning to save 1 cr in 20 years");
-                              break;
-                            case 'Retirement Planning':
-                              nextQuestion = "Excellent! What's your target retirement corpus and when do you plan to retire?";
-                              setExampleText("I want to save 2 cr and retire at 60");
-                              break;
-                            case 'Build Wealth':
-                              nextQuestion = "Great choice! What's your wealth building goal and timeline?";
-                              setExampleText("I want to build 50 lakhs in 10 years");
-                              break;
-                            case 'Tax Saving':
-                              nextQuestion = "Smart thinking! How much are you looking to save in taxes annually?";
-                              setExampleText("I want to save around 1.5 lakhs per year");
-                              break;
-                            case 'Protect my Family':
-                              nextQuestion = "That's thoughtful! What coverage amount are you considering for your family?";
-                              setExampleText("I need a cover of 1 cr for my family");
-                              break;
-                            default:
-                              nextQuestion = "Let's continue. Tell me more about your goals.";
-                          }
-                        }
-                        
-                        if (nextQuestion) {
-                          const nextBotMessage: Message = {
-                            id: (Date.now() + 2).toString(),
-                            content: nextQuestion,
-                            sender: 'bot',
-                            timestamp: new Date(),
-                          };
-                          setMessages((prev) => [...prev, nextBotMessage]);
-                        }
-                      }, 1000);
-                    }, 300);
-                  }
-                }}
+                onConfirmChanges={() => { triggerSaveToast(); }}
               />
             )}
           </AnimatePresence>
@@ -11193,24 +11139,7 @@ Rules:
                 userData={userData}
                 onClose={() => setShowEditPolicySheet(false)}
                 onSave={(newData) => setUserData({ ...userData, ...newData })}
-                onConfirmChanges={(changes) => {
-                  // Navigate back to chat
-                  setCurrentView('chat');
-                  
-                  // Add bot confirmation message
-                  if (changes.length > 0) {
-                    setTimeout(() => {
-                      const changeText = changes.join(', ');
-                      const botMessage: Message = {
-                        id: Date.now().toString(),
-                        content: `Perfect! I've updated your ${changeText}. These policy details have been saved.`,
-                        sender: 'bot',
-                        timestamp: new Date(),
-                      };
-                      setMessages((prev) => [...prev, botMessage]);
-                    }, 300);
-                  }
-                }}
+                onConfirmChanges={() => { triggerSaveToast(); }}
               />
             )}
           </AnimatePresence>
@@ -11223,6 +11152,7 @@ Rules:
                 onClose={() => setShowEditPersonalDetailsSheet(false)}
                 onSave={(newData) => {
                   setUserData((prev) => ({ ...prev, ...newData }));
+                  triggerSaveToast();
                 }}
               />
             )}
@@ -11245,7 +11175,7 @@ Rules:
               <EditHeightWeightBottomSheet
                 userData={userData}
                 onClose={() => setShowEditHeightWeightSheet(false)}
-                onSave={handleHeightWeightSave}
+                onSave={(newData) => { handleHeightWeightSave(newData); triggerSaveToast(); }}
               />
             )}
           </AnimatePresence>
@@ -11317,6 +11247,24 @@ Rules:
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <p className="font-medium text-sm">Document details extracted successfully!</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Save Changes Toast */}
+          <AnimatePresence>
+            {showSaveToast && (
+              <motion.div
+                initial={{ opacity: 0, y: -40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-[70px] left-1/2 -translate-x-1/2 bg-[#1a7a3c] text-white px-6 py-3 rounded-[14px] shadow-lg z-[60] flex items-center gap-2 whitespace-nowrap"
+              >
+                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="font-medium text-sm">Changes saved successfully</p>
               </motion.div>
             )}
           </AnimatePresence>
