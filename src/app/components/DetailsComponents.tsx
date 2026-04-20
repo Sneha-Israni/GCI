@@ -200,7 +200,8 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
 
       {/* Onboarding Details Card */}
       <div className="absolute content-stretch flex flex-col items-center left-[20px] overflow-y-auto right-[20px] top-[141px] bottom-[20px] gap-[16px] pb-[20px]">
-        {/* Card 1: Onboarding Details */}
+        {/* Card 1: Onboarding Details — only show if at least one field is filled */}
+        {(userData.age || userData.gender || userData.goal || userData.goalAmount) && (
         <CollapsibleCard
           title="Onboarding Details"
           isExpanded={expandedCards.onboarding}
@@ -256,8 +257,10 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
             </div>
           </div>
         </CollapsibleCard>
+        )}
 
-        {/* Card 2: Policy Details */}
+        {/* Card 2: Policy Details — only show if at least one policy field is filled */}
+        {(userData.policyType || userData.riskTolerance || userData.selectedPlan || userData.riders || userData.policyDuration || userData.premiumPaymentTerm || userData.premiumFrequency || userData.employeeStatus || userData.productOption || userData.productCategory || userData.deathBenefitMultiple) && (
         <div className="bg-white relative rounded-[16px] shrink-0 w-full">
           <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
           <div className="overflow-clip rounded-[inherit] size-full">
@@ -475,6 +478,8 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
           </div>
         </div>
 
+        )}
+
         {/* Card 3: Documents */}
         {documents && previewUrls && (
           <ReviewDocumentsCard
@@ -484,8 +489,8 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
           />
         )}
 
-        {/* Card 4: Personal Details */}
-        {(userData.fullName || userData.dateOfBirth || userData.placeOfBirth || userData.nationality || userData.maritalStatus) && (
+        {/* Card 4: Personal Details — only show if user-filled fields exist (nationality is always hardcoded so excluded) */}
+        {(userData.fullName || userData.dateOfBirth || userData.placeOfBirth || userData.maritalStatus) && (
           <div className="bg-white relative rounded-[16px] shrink-0 w-full">
             <div aria-hidden="true" className="absolute border-[0.5px] border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]" />
             <div className="overflow-clip rounded-[inherit] size-full">

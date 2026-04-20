@@ -2143,8 +2143,8 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
       contactNumber?: string;
     }>,
     // Physical measurements from full-length photo
-    height: '175 cm',
-    weight: '70 kg',
+    height: '',
+    weight: '',
     weightChange: '', // Weight gain/loss > 5kg in last 6 months
     // Health conditions
     healthConditions: [] as string[],
