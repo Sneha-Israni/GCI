@@ -1525,7 +1525,7 @@ function DocumentUpload({
     });
   };
 
-  let displayedDocuments = documents.filter(doc => doc === 'PAN Card' || doc === 'Address Proof Document' || doc === 'Cheque' || doc === 'Business Card');
+  let displayedDocuments = documents.filter(doc => doc === 'PAN Card' || doc === 'Age Proof' || doc === 'Address Proof Document' || doc === 'Cheque' || doc === 'Business Card');
   
   // Add Permanent Address Proof Document if addresses are not the same
   if (!addressesSame && displayedDocuments.includes('Address Proof Document')) {
@@ -1565,11 +1565,16 @@ function DocumentUpload({
             {/* Document Title */}
             <div>
               <p className="font-semibold text-gray-900 text-[15px]">
-                {t(docType === 'PAN Card' ? 'Tax Identification Document' : docType)}
+                {t(docType === 'PAN Card' ? 'Tax Identification Document' : docType === 'Age Proof' ? 'Age Proof (Aadhaar / Govt ID)' : docType)}
               </p>
               {docType === 'PAN Card' && (
                 <p className="text-xs text-gray-600 mt-1">
                   {t('Recommended: PAN Card, Form 60')}
+                </p>
+              )}
+              {docType === 'Age Proof' && (
+                <p className="text-xs text-gray-600 mt-1">
+                  {t('Recommended: Aadhaar Card, Passport, Driving Licence')}
                 </p>
               )}
               {(docType === 'Address Proof Document' || docType === 'Permanent Address Proof Document') && (
@@ -2192,6 +2197,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   // Track which step-1 fields have been explicitly captured by the user (not just defaults)
   const [step1AgeCaptured, setStep1AgeCaptured] = useState(false);
   const [step1GenderCaptured, setStep1GenderCaptured] = useState(false);
+  // Refs mirror the above — used inside handleSendMessage where React state is stale within the same render
+  const step1AgeCapturedRef = useRef(false);
+  const step1GenderCapturedRef = useRef(false);
   // Holds real-time extracted fields from uploaded documents for in-card preview
   const [documentExtractedData, setDocumentExtractedData] = useState<Record<string, string | null> | null>(null);
   const [showAadhaarSuccessToast, setShowAadhaarSuccessToast] = useState(false);
@@ -6076,6 +6084,15 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     console.log('Using client-side fallback parser for step:', step);
     
     switch (step) {
+      case 1: { // Age and gender — regex fallback when OpenAI is unavailable
+        const lower = userInput.toLowerCase();
+        const ageMatch = userInput.match(/\b(\d{1,3})\b/);
+        const age = ageMatch ? parseInt(ageMatch[1]) : null;
+        let gender: string | null = null;
+        if (/\b(female|woman|girl|f\b)/i.test(lower)) gender = 'Female';
+        else if (/\b(male|man|boy|m\b)/i.test(lower)) gender = 'Male';
+        return { age: (age && age > 0 && age < 120) ? age : null, gender };
+      }
       case 18: // Professional details (employer, designation, occupation)
         return parseProfessionalDetails(userInput);
       
@@ -6488,9 +6505,11 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
     if (!apiKey) {
-      console.warn('OpenAI API key not configured, using regex fallback');
+      console.warn('⚠️ OpenAI API key not configured, using regex fallback');
       return parseWithClientSideFallback(userInput, step);
     }
+
+    console.log(`🤖 parseWithOpenAI called — step: ${step}, input: "${userInput}"`);
 
     const stepPrompts: Record<number, string> = {
       1: `You are an intelligent form assistant. Extract the user's age and gender from their free-form message. The user may write naturally without any specific format or punctuation. Examples: "I am 35 years old and I am male", "28 female", "thirty five, male", "35 & Male". Return JSON: {"age": <number or null>, "gender": <"Male"|"Female"|null>}.`,
@@ -6516,6 +6535,8 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
       3: `You are an intelligent form assistant. Extract the target amount and the timeframe (in years) from the user's free-form message about their financial goal. Examples: "I want to save 1 crore in 20 years", "50 lakhs by 2040", "around 75 lakhs", "in 15 years". Return JSON: {"amount": "<amount as stated, e.g. 1 crore, 50 lakhs>" or null, "timeframe": "<timeframe as stated, e.g. 20 years, by 2040>" or null}.`,
 
       34: `You are an intelligent form assistant. Extract bank details from the user's free-form message. The user may write naturally without commas or labels. Examples: "HDFC Bank account 50100123456789 IFSC HDFC0001234 MG Road Bangalore branch", "my bank is SBI account number 12345678 IFSC SBIN0001234 branch Koramangala". Return JSON: {"bankName": "..." or null, "accountNumber": "..." or null, "ifscCode": "..." or null, "branchName": "..." or null}.`,
+
+      23: `You are an intelligent form assistant. Extract the annual income amount from the user's free-form message. The user may write in any format. Examples: "15 lakhs per year", "₹15 lakhs", "around 15", "my income is 15 lakh", "fifteen lakhs". Always return the numeric value in lakhs as a plain number string (e.g. "15"). If they say crore, convert to lakhs (1 crore = 100 lakhs). Return JSON: {"annualIncome": "<number as string>" or null}.`,
     };
 
     const systemPrompt = stepPrompts[step];
@@ -6592,22 +6613,29 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
       // Use OpenAI to understand natural language age & gender input
       const parsed = await parseWithOpenAI(messageText, 1);
 
-      const age = parsed?.age;
-      const gender = parsed?.gender;
+      const age = parsed?.age ? String(parsed.age) : null;
+      const gender = parsed?.gender || null;
 
-      // Save whatever was understood and mark as explicitly captured
+      // Save whatever was understood — update both state and refs
+      // Refs update synchronously so subsequent logic in this same call sees the new values
       if (age) {
-        setUserData((prev) => ({ ...prev, age: String(age) }));
+        setUserData((prev) => ({ ...prev, age }));
         setStep1AgeCaptured(true);
+        step1AgeCapturedRef.current = true;
       }
       if (gender) {
         setUserData((prev) => ({ ...prev, gender }));
         setStep1GenderCaptured(true);
+        step1GenderCapturedRef.current = true;
       }
 
-      // Determine what's resolved — use capture flags, not value comparison against defaults
-      const resolvedAge = age || (step1AgeCaptured ? userData.age : null);
-      const resolvedGender = gender || (step1GenderCaptured ? userData.gender : null);
+      // Resolve using refs (synchronous) + the local parsed values
+      // userData is stale within this render, so we use the local variable if just parsed,
+      // or userData if it was captured in a *previous* turn (ref will be true)
+      const resolvedAge = age || (step1AgeCapturedRef.current && !age ? userData.age : null);
+      const resolvedGender = gender || (step1GenderCapturedRef.current && !gender ? userData.gender : null);
+
+      console.log(`📊 Step 1 resolve — age: ${age}, gender: ${gender}, resolvedAge: ${resolvedAge}, resolvedGender: ${resolvedGender}, ageRef: ${step1AgeCapturedRef.current}, genderRef: ${step1GenderCapturedRef.current}`);
 
       if (!resolvedAge && !resolvedGender) {
         setTimeout(() => {
@@ -6659,6 +6687,8 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
       }));
       setStep1AgeCaptured(false);
       setStep1GenderCaptured(false);
+      step1AgeCapturedRef.current = false;
+      step1GenderCapturedRef.current = false;
 
       // Update step progress
       setCurrentStep(2); // Moving to Goal selection
@@ -6903,11 +6933,29 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     }
     // Step 23: Annual income input (after professional details confirmation)
     else if (currentStep === 23 && messages[messages.length - 1].content.includes('annual income')) {
+      const parsed = await parseWithOpenAI(messageText, 23);
+      const annualIncome = parsed?.annualIncome;
+
+      if (!annualIncome) {
+        setTimeout(() => {
+          setIsThinking(false);
+          const botMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: "I couldn't catch that. Could you share your annual income in lakhs? For example: \"15 lakhs\".",
+            sender: 'bot',
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, botMessage]);
+          setExampleText('₹15 lakhs per year');
+        }, 1000);
+        return;
+      }
+
       setUserData((prev) => ({
         ...prev,
-        annualIncome: messageText,
+        annualIncome,
       }));
-      
+
       setCurrentStep(24);
       
       // Ask for father's details - include name if not already extracted from documents
