@@ -1,0 +1,695 @@
+import svgPaths from "./svg-ocqj77t89t";
+import imgMascot from "figma:asset/9b8882faf2edb23d4f87beff823e8af6f285c81a.png";
+import imgImage8 from "figma:asset/4561056eb3a95498ccc61589b35393e53cbe0b36.png";
+import imgImage9 from "figma:asset/634d9a9aa5be837a7af4f48d24734b9635ccf11b.png";
+import imgImage7 from "figma:asset/654cafdaff37628e5a90a6b6c655b3cd203070df.png";
+import imgImage10 from "figma:asset/af2df1b399a73cc3cbf605b2095ff2561897a1d8.png";
+import imgImage12 from "figma:asset/7f9d264012cc83a80f7cb5acd5b31d45d8965a5a.png";
+import imgImage13 from "figma:asset/b31d62d8cac06b693423ebeb9968fa4570cccd24.png";
+
+function TextContent() {
+  return (
+    <div className="absolute backdrop-blur-[0px] bg-white content-stretch flex items-center justify-center left-[12px] overflow-clip px-[12px] py-[16px] rounded-[16px] top-0 w-[309px]" data-name="Text content">
+      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#536b76] text-[16px] w-[272px] whitespace-pre-wrap">What are you hoping to achieve with this insurance: protection, savings, or something else?</p>
+    </div>
+  );
+}
+
+function Content() {
+  return (
+    <div className="h-[89px] relative shadow-[0px_2px_2px_0px_rgba(0,0,0,0.08)] shrink-0 w-[321px]" data-name="Content">
+      <TextContent />
+      <div className="absolute flex items-center justify-center left-0 size-[19px] top-[26px]" style={{ "--transform-inner-width": "1200", "--transform-inner-height": "21.59375" } as React.CSSProperties}>
+        <div className="-rotate-90 flex-none">
+          <div className="relative size-[19px]">
+            <div className="absolute bottom-1/4 left-[10.54%] right-[10.54%] top-[5.26%]">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.9934 13.25">
+                <path d={svgPaths.p375adf00} data-figma-bg-blur-radius="32.4" fill="var(--fill-0, white)" id="Polygon 1" stroke="var(--stroke-0, white)" />
+                <defs>
+                  <clipPath id="bgblur_0_567_299_clip_path" transform="translate(32.4 32.4)">
+                    <path d={svgPaths.p375adf00} />
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MascotSection() {
+  return (
+    <div className="absolute content-stretch flex h-[85px] items-center left-0 top-[-406px] w-[412px]" data-name="Mascot section">
+      <div className="h-[61px] relative shrink-0 w-[60px]" data-name="Mascot">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgMascot} />
+      </div>
+      <Content />
+    </div>
+  );
+}
+
+function Frame1() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[24px]" data-name="image 8">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage8} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">Save for kids’ education</p>
+        </div>
+      </div>
+      <div aria-hidden="true" className="absolute border-[#f6f6f6] border-b border-solid inset-0 pointer-events-none" />
+    </div>
+  );
+}
+
+function Frame2() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[24px]" data-name="image 9">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage9} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">Retirement planning</p>
+        </div>
+      </div>
+      <div aria-hidden="true" className="absolute border-[#f6f6f6] border-b border-solid inset-0 pointer-events-none" />
+    </div>
+  );
+}
+
+function Frame3() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[24px]" data-name="image 7">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage7} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">{` Build wealth`}</p>
+        </div>
+      </div>
+      <div aria-hidden="true" className="absolute border-[#f6f6f6] border-b border-solid inset-0 pointer-events-none" />
+    </div>
+  );
+}
+
+function Frame4() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[24px]" data-name="image 10">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage10} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">Tax saving</p>
+        </div>
+      </div>
+      <div aria-hidden="true" className="absolute border-[#f6f6f6] border-b border-solid inset-0 pointer-events-none" />
+    </div>
+  );
+}
+
+function Frame5() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[24px]" data-name="image 12">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage12} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">Protect my family</p>
+        </div>
+      </div>
+      <div aria-hidden="true" className="absolute border-[#f6f6f6] border-b border-solid inset-0 pointer-events-none" />
+    </div>
+  );
+}
+
+function Frame6() {
+  return (
+    <div className="relative shrink-0 w-full">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex gap-[10px] items-center px-[35px] py-[11px] relative w-full">
+          <div className="relative shrink-0 size-[32px]" data-name="image 13">
+            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImage13} />
+          </div>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[12px] text-black">Riders</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Plans() {
+  return (
+    <div className="absolute bg-white left-[71px] rounded-[16px] top-[-309px] w-[309px]" data-name="Plans">
+      <div className="content-stretch flex flex-col items-end justify-center overflow-clip py-[9px] relative rounded-[inherit] w-full">
+        <Frame1 />
+        <Frame2 />
+        <Frame3 />
+        <Frame4 />
+        <Frame5 />
+        <Frame6 />
+      </div>
+      <div aria-hidden="true" className="absolute border border-[#ffdfdf] border-dashed inset-0 pointer-events-none rounded-[16px]" />
+    </div>
+  );
+}
+
+function TextContent1() {
+  return (
+    <div className="backdrop-blur-[0px] bg-white flex-[1_0_0] min-h-px min-w-px mr-[-8px] relative rounded-[16px]" data-name="Text content">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex items-center px-[12px] py-[16px] relative w-full">
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#191818] text-[16px] w-[298px] whitespace-pre-wrap">{`Let’s get to know your employer name, designation & occupation`}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ContentArea() {
+  return (
+    <div className="content-stretch flex items-center pr-[8px] relative shadow-[0px_2px_2px_0px_rgba(0,0,0,0.08)] shrink-0 w-[333px]" data-name="Content Area">
+      <div className="flex items-center justify-center mr-[-8px] relative shrink-0 size-[19px]" style={{ "--transform-inner-width": "1200", "--transform-inner-height": "21.59375" } as React.CSSProperties}>
+        <div className="-rotate-90 flex-none">
+          <div className="relative size-[19px]" data-name="Tip">
+            <div className="absolute bottom-1/4 left-[10.54%] right-[10.54%] top-[5.26%]">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.9934 13.25">
+                <path d={svgPaths.p375adf00} data-figma-bg-blur-radius="32.4" fill="var(--fill-0, white)" id="Tip" stroke="var(--stroke-0, white)" />
+                <defs>
+                  <clipPath id="bgblur_0_561_126_clip_path" transform="translate(32.4 32.4)">
+                    <path d={svgPaths.p375adf00} />
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <TextContent1 />
+    </div>
+  );
+}
+
+function Frame11() {
+  return (
+    <div className="-translate-x-1/2 absolute content-stretch flex items-start left-1/2 px-[12px] top-[71px] w-[412px]">
+      <div className="relative shrink-0 size-[60px]" data-name="Mascot">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgMascot} />
+      </div>
+      <ContentArea />
+    </div>
+  );
+}
+
+function TextContent2() {
+  return (
+    <div className="backdrop-blur-[0px] bg-white flex-[1_0_0] min-h-px min-w-px mr-[-8px] relative rounded-[16px]" data-name="Text content">
+      <div className="flex flex-row items-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex items-center px-[12px] py-[16px] relative w-full">
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#191818] text-[16px] w-[298px] whitespace-pre-wrap">Perfect! I’ll analyze your role and auto-fill your industry and work details.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ContentArea1() {
+  return (
+    <div className="content-stretch flex items-center pr-[8px] relative shadow-[0px_2px_2px_0px_rgba(0,0,0,0.08)] shrink-0 w-[333px]" data-name="Content Area">
+      <div className="flex items-center justify-center mr-[-8px] relative shrink-0 size-[19px]" style={{ "--transform-inner-width": "1200", "--transform-inner-height": "21.59375" } as React.CSSProperties}>
+        <div className="-rotate-90 flex-none">
+          <div className="relative size-[19px]" data-name="Tip">
+            <div className="absolute bottom-1/4 left-[10.54%] right-[10.54%] top-[5.26%]">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.9934 13.25">
+                <path d={svgPaths.p375adf00} data-figma-bg-blur-radius="32.4" fill="var(--fill-0, white)" id="Tip" stroke="var(--stroke-0, white)" />
+                <defs>
+                  <clipPath id="bgblur_0_561_126_clip_path" transform="translate(32.4 32.4)">
+                    <path d={svgPaths.p375adf00} />
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <TextContent2 />
+    </div>
+  );
+}
+
+function Frame13() {
+  return (
+    <div className="-translate-x-1/2 absolute content-stretch flex items-start left-1/2 px-[12px] top-[364px] w-[412px]">
+      <div className="relative shrink-0 size-[60px]" data-name="Mascot">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgMascot} />
+      </div>
+      <ContentArea1 />
+    </div>
+  );
+}
+
+function Time() {
+  return (
+    <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Time">
+      <div className="flex flex-row items-center justify-center size-full">
+        <div className="content-stretch flex items-center justify-center pl-[16px] pr-[6px] relative w-full">
+          <p className="font-['SF_Pro:Semibold',sans-serif] font-[590] leading-[22px] relative shrink-0 text-[17px] text-black text-center" style={{ fontVariationSettings: "\'wdth\' 100" }}>
+            9:41
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DynamicIslandSpacer() {
+  return <div className="h-[10px] shrink-0 w-[124px]" data-name="Dynamic Island spacer" />;
+}
+
+function Battery() {
+  return (
+    <div className="h-[13px] relative shrink-0 w-[27.328px]" data-name="Battery">
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 27.328 13">
+        <g id="Battery">
+          <rect height="12" id="Border" opacity="0.35" rx="3.8" stroke="var(--stroke-0, black)" width="24" x="0.5" y="0.5" />
+          <path d={svgPaths.p3bbd9700} fill="var(--fill-0, black)" id="Cap" opacity="0.4" />
+          <rect fill="var(--fill-0, black)" height="9" id="Capacity" rx="2.5" width="21" x="2" y="2" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function Levels() {
+  return (
+    <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Levels">
+      <div className="flex flex-row items-center justify-center size-full">
+        <div className="content-stretch flex gap-[7px] items-center justify-center pl-[6px] pr-[16px] relative w-full">
+          <div className="h-[12.226px] relative shrink-0 w-[19.2px]" data-name="Cellular Connection">
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.2 12.2264">
+              <path clipRule="evenodd" d={svgPaths.p1e09e400} fill="var(--fill-0, black)" fillRule="evenodd" id="Cellular Connection" />
+            </svg>
+          </div>
+          <div className="h-[12.328px] relative shrink-0 w-[17.142px]" data-name="Wifi">
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 17.1417 12.3283">
+              <path clipRule="evenodd" d={svgPaths.p18b35300} fill="var(--fill-0, black)" fillRule="evenodd" id="Wifi" />
+            </svg>
+          </div>
+          <Battery />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Frame() {
+  return (
+    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="Frame">
+      <Time />
+      <DynamicIslandSpacer />
+      <Levels />
+    </div>
+  );
+}
+
+function StatusBarIPhone() {
+  return (
+    <div className="absolute content-stretch flex flex-col h-[39px] items-start left-0 pt-[21px] top-0 w-[412px]" data-name="Status Bar - iPhone">
+      <Frame />
+    </div>
+  );
+}
+
+function Paperclip() {
+  return (
+    <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[18px] top-1/2" data-name="paperclip">
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+        <g id="paperclip">
+          <path d={svgPaths.pb1ab5e8} id="Vector" stroke="var(--stroke-0, #737373)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function Icon() {
+  return (
+    <div className="relative shrink-0 size-[24px]" data-name="Icon">
+      <Paperclip />
+    </div>
+  );
+}
+
+function IconText() {
+  return (
+    <div className="content-stretch flex gap-[13px] items-center relative shrink-0" data-name="Icon+ Text">
+      <Icon />
+      <p className="font-['Inter:Light',sans-serif] font-light leading-[normal] not-italic relative shrink-0 text-[16px] text-black">{`Type your response `}</p>
+    </div>
+  );
+}
+
+function Group() {
+  return (
+    <div className="absolute inset-[8.33%_20.83%_12.5%_20.83%]" data-name="Group">
+      <div className="absolute inset-[0_-7.14%_-5.26%_-7.14%]">
+        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16 20">
+          <g id="Group">
+            <path d={svgPaths.p17188b80} fill="var(--fill-0, white)" id="Vector" />
+            <path d={svgPaths.p11bfc93e} id="Vector_2" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function Mic() {
+  return (
+    <div className="absolute left-[8px] overflow-clip size-[24px] top-[8px]" data-name="Mic">
+      <Group />
+    </div>
+  );
+}
+
+function Send() {
+  return (
+    <div className="bg-[#c21b17] overflow-clip relative rounded-[100px] shrink-0 size-[40px]" data-name="Send">
+      <Mic />
+    </div>
+  );
+}
+
+function Field() {
+  return (
+    <div className="bg-white relative rounded-[100px] shrink-0 w-[393px]" data-name="Field">
+      <div className="content-stretch flex items-center justify-between overflow-clip px-[11px] py-[7px] relative rounded-[inherit] w-full">
+        <IconText />
+        <Send />
+      </div>
+      <div aria-hidden="true" className="absolute border border-[#ffe6e5] border-solid inset-0 pointer-events-none rounded-[100px]" />
+    </div>
+  );
+}
+
+function ResponseArea() {
+  return (
+    <div className="relative shrink-0 w-full" data-name="Response Area">
+      <div className="flex flex-row items-center justify-center overflow-clip rounded-[inherit] size-full">
+        <div className="content-stretch flex items-center justify-center px-[16px] relative w-full">
+          <Field />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomeIndicator() {
+  return (
+    <div className="absolute bottom-0 h-[27px] left-[5px] right-[5px]" data-name="Home Indicator">
+      <div className="-translate-x-1/2 absolute bottom-[8px] flex h-[5px] items-center justify-center left-1/2 w-[144px]">
+        <div className="-scale-y-100 flex-none rotate-180">
+          <div className="bg-black h-[5px] rounded-[100px] w-[144px]" data-name="Home Indicator" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Frame12() {
+  return (
+    <div className="-translate-x-1/2 absolute bottom-[40px] content-stretch flex flex-col gap-[10px] h-[104px] items-start left-1/2 w-[428px]">
+      <ResponseArea />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+function Icon1() {
+  return (
+    <div className="relative shrink-0 size-[18px]" data-name="Icon">
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+        <g clipPath="url(#clip0_567_292)" id="Icon">
+          <path d={svgPaths.p2e00b00} id="Vector" stroke="var(--stroke-0, #0A70FF)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d="M15 2.25V5.25" id="Vector_2" stroke="var(--stroke-0, #0A70FF)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d="M16.5 3.75H13.5" id="Vector_3" stroke="var(--stroke-0, #0A70FF)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d="M3 12.75V14.25" id="Vector_4" stroke="var(--stroke-0, #0A70FF)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+          <path d="M3.75 13.5H2.25" id="Vector_5" stroke="var(--stroke-0, #0A70FF)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+        </g>
+        <defs>
+          <clipPath id="clip0_567_292">
+            <rect fill="white" height="18" width="18" />
+          </clipPath>
+        </defs>
+      </svg>
+    </div>
+  );
+}
+
+function ExampleResponseHeader() {
+  return (
+    <div className="flex-[1_0_0] h-[19.5px] min-h-px min-w-px relative" data-name="Example response header">
+      <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[18px] left-0 not-italic text-[#0a70ff] text-[13px] top-[0.4px]">Example Response:</p>
+    </div>
+  );
+}
+
+function Frame7() {
+  return (
+    <div className="content-stretch flex gap-[8px] h-[20px] items-start relative shrink-0 w-full">
+      <Icon1 />
+      <ExampleResponseHeader />
+    </div>
+  );
+}
+
+function Description() {
+  return (
+    <div className="h-[13px] relative shrink-0 w-full" data-name="Description">
+      <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[18px] left-0 not-italic text-[#0a70ff] text-[12px] top-[-0.4px] w-[298px] whitespace-pre-wrap">TCS, Software Engineer, Salaried</p>
+    </div>
+  );
+}
+
+function Description1() {
+  return (
+    <div className="h-[13px] relative shrink-0 w-full" data-name="Description">
+      <p className="absolute font-['Inter:Medium',sans-serif] font-medium leading-[18px] left-0 not-italic text-[#0a70ff] text-[12px] top-[-0.4px] w-[298px] whitespace-pre-wrap">Self-employed, Interior Designing, Business</p>
+    </div>
+  );
+}
+
+function Frame9() {
+  return (
+    <div className="content-stretch flex flex-col h-[13px] items-start relative shrink-0 w-full">
+      <Description1 />
+    </div>
+  );
+}
+
+function Frame10() {
+  return <div className="flex-[1_0_0] min-h-px min-w-px w-full" />;
+}
+
+function Frame8() {
+  return (
+    <div className="content-stretch flex flex-col gap-[10px] h-[66px] items-start relative shrink-0 w-full">
+      <Frame7 />
+      <Description />
+      <Frame9 />
+      <Frame10 />
+    </div>
+  );
+}
+
+function Content1() {
+  return (
+    <div className="bg-[#f7faff] content-stretch flex flex-col h-[96px] items-start p-[16px] relative rounded-[16px] shrink-0 w-[372px]" data-name="Content">
+      <div aria-hidden="true" className="absolute border-[#0a70ff] border-[0.8px] border-solid inset-0 pointer-events-none rounded-[16px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.1)]" />
+      <Frame8 />
+    </div>
+  );
+}
+
+function ExampleContent() {
+  return (
+    <div className="-translate-x-1/2 absolute content-stretch flex flex-col items-center left-1/2 px-[20px] top-[161px] w-[428px]" data-name="Example Content">
+      <Content1 />
+    </div>
+  );
+}
+
+function TextContent3() {
+  return (
+    <div className="backdrop-blur-[0px] bg-[#ff5050] content-stretch flex items-center justify-end overflow-clip p-[12px] relative rounded-[12px] shrink-0" data-name="Text content">
+      <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[16px] text-white">Infosys, Support Engineer, Salaried</p>
+    </div>
+  );
+}
+
+function UserResponse() {
+  return (
+    <div className="-translate-x-1/2 absolute content-stretch flex flex-col items-end left-1/2 px-[20px] shadow-[0px_2px_2px_0px_rgba(0,0,0,0.08)] top-[289px] w-[428px]" data-name="User Response">
+      <TextContent3 />
+    </div>
+  );
+}
+
+function Heading() {
+  return (
+    <div className="h-[24px] relative shrink-0 w-[153.225px]" data-name="Heading 3">
+      <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
+        <p className="absolute font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[24px] left-0 not-italic text-[#263238] text-[16px] top-[-0.6px]">Professional Details</p>
+      </div>
+    </div>
+  );
+}
+
+function Button() {
+  return (
+    <div className="h-[21px] relative shrink-0 w-[25.9px]" data-name="Button">
+      <div className="bg-clip-padding border-0 border-[transparent] border-solid relative size-full">
+        <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[21px] left-[13px] not-italic text-[#c21b17] text-[14px] text-center top-[-0.4px]">Edit</p>
+      </div>
+    </div>
+  );
+}
+
+function Container() {
+  return (
+    <div className="h-[24px] relative shrink-0 w-full" data-name="Container">
+      <div className="flex flex-row items-center size-full">
+        <div className="content-stretch flex items-center justify-between relative size-full">
+          <Heading />
+          <Button />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Paragraph() {
+  return (
+    <div className="absolute h-[19.5px] left-0 top-0 w-[150.4px]" data-name="Paragraph">
+      <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#666] text-[13px] top-[0.6px]">Industry</p>
+    </div>
+  );
+}
+
+function Paragraph1() {
+  return (
+    <div className="absolute h-[19.5px] left-[150.4px] top-0 w-[150.4px]" data-name="Paragraph">
+      <p className="-translate-x-full absolute font-['Inter:Medium',sans-serif] font-medium leading-[19.5px] left-[150.71px] not-italic text-[#263238] text-[13px] text-right top-[0.6px]">Information Technology</p>
+    </div>
+  );
+}
+
+function Container2() {
+  return (
+    <div className="h-[19.5px] relative shrink-0 w-full" data-name="Container">
+      <Paragraph />
+      <Paragraph1 />
+    </div>
+  );
+}
+
+function Paragraph2() {
+  return (
+    <div className="absolute h-[19.5px] left-0 top-0 w-[150.4px]" data-name="Paragraph">
+      <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#666] text-[13px] top-[0.6px]">Job Duties</p>
+    </div>
+  );
+}
+
+function Paragraph3() {
+  return (
+    <div className="absolute h-[113px] left-[150px] top-0 w-[151px]" data-name="Paragraph">
+      <p className="-translate-x-full absolute font-['Inter:Medium',sans-serif] font-medium leading-[19.5px] left-[151px] not-italic text-[#263238] text-[13px] text-right top-px w-[191px] whitespace-pre-wrap">Designing and developing software applications, code reviews, mentoring junior developers</p>
+    </div>
+  );
+}
+
+function Container3() {
+  return (
+    <div className="h-[97.5px] relative shrink-0 w-full" data-name="Container">
+      <Paragraph2 />
+      <Paragraph3 />
+    </div>
+  );
+}
+
+function Paragraph4() {
+  return (
+    <div className="absolute h-[19.5px] left-0 top-0 w-[150.4px]" data-name="Paragraph">
+      <p className="absolute font-['Inter:Regular',sans-serif] font-normal leading-[19.5px] left-0 not-italic text-[#666] text-[13px] top-[0.6px]">Hazardous Environment</p>
+    </div>
+  );
+}
+
+function Paragraph5() {
+  return (
+    <div className="absolute h-[19.5px] left-[150.4px] top-0 w-[150.4px]" data-name="Paragraph">
+      <p className="-translate-x-full absolute font-['Inter:Medium',sans-serif] font-medium leading-[19.5px] left-[150.85px] not-italic text-[#263238] text-[13px] text-right top-[0.6px]">No</p>
+    </div>
+  );
+}
+
+function Container4() {
+  return (
+    <div className="h-[19.5px] relative shrink-0 w-full" data-name="Container">
+      <Paragraph4 />
+      <Paragraph5 />
+    </div>
+  );
+}
+
+function Container1() {
+  return (
+    <div className="content-stretch flex flex-col gap-[12px] items-start relative shrink-0 w-full" data-name="Container">
+      <Container2 />
+      <Container3 />
+      <Container4 />
+    </div>
+  );
+}
+
+function Button1() {
+  return (
+    <div className="bg-[#c21b17] h-[46.5px] relative rounded-[12px] shrink-0 w-full" data-name="Button">
+      <p className="-translate-x-1/2 absolute font-['Inter:Medium',sans-serif] font-medium leading-[22.5px] left-[150.63px] not-italic text-[15px] text-center text-white top-[10.6px]">Confirm Details</p>
+    </div>
+  );
+}
+
+function ReviewProfessionalDetailsCard() {
+  return (
+    <div className="absolute bg-white content-stretch flex flex-col gap-[16px] items-start left-[77px] p-[16px] rounded-[16px] shadow-[0px_2px_8px_0px_rgba(0,0,0,0.08)] top-[454px] w-[333px]" data-name="ReviewProfessionalDetailsCard">
+      <Container />
+      <Container1 />
+      <Button1 />
+    </div>
+  );
+}
+
+export default function ProfessionalDetails() {
+  return (
+    <div className="bg-gradient-to-b from-[#ffe9e7] relative size-full to-[#fffefe]" data-name="Professional Details 1">
+      <MascotSection />
+      <Plans />
+      <Frame11 />
+      <Frame13 />
+      <StatusBarIPhone />
+      <Frame12 />
+      <ExampleContent />
+      <UserResponse />
+      <ReviewProfessionalDetailsCard />
+    </div>
+  );
+}
