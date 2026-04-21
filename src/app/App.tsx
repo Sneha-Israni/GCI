@@ -9222,8 +9222,8 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       return null;
     };
 
-    // If it's an Age Proof (Aadhaar card) or Address Proof Document, extract information using OpenAI Vision
-    if (docType === 'Age Proof' || docType === 'Address Proof Document') {
+    // If it's an Age Proof (Aadhaar card), Address Proof Document, or PAN Card, extract information using OpenAI Vision
+    if (docType === 'Age Proof' || docType === 'Address Proof Document' || docType === 'PAN Card') {
       const mimeType = file.type || 'image/jpeg';
       const supportedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 
@@ -9332,7 +9332,8 @@ Rules:
             ...prev,
             ...(resolvedName && { fullName: resolvedName }),
             ...(resolvedDOB && { dateOfBirth: resolvedDOB }),
-            ...(resolvedFatherName && { fatherName: resolvedFatherName }),
+            // Only set fatherName from PAN if Aadhaar hasn't already populated it
+            ...(resolvedFatherName && !prev.fatherName && { fatherName: resolvedFatherName }),
             ...(resolvedAddress && {
               communicationAddress: resolvedAddress,
               permanentAddress: resolvedAddress,
