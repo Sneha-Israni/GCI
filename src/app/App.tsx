@@ -1150,6 +1150,8 @@ function HealthConditionsSelector({
   onConfirm: () => void;
 }) {
   const { t } = useTranslation();
+  const [activeTooltip, setActiveTooltip] = React.useState<string | null>(null);
+
   const conditions = [
     'Respiratory',
     'Digestive System',
@@ -1161,13 +1163,22 @@ function HealthConditionsSelector({
     "I don't have any disorders"
   ];
 
+  const conditionInfo: Record<string, string> = {
+    'Respiratory': 'Includes: Asthma, Bronchitis, COPD, Sleep Apnea, Pulmonary Fibrosis',
+    'Digestive System': 'Includes: IBS, Crohn\'s Disease, Acid Reflux/GERD, Liver Disease, Ulcers',
+    'Bone Disorder': 'Includes: Arthritis, Osteoporosis, Scoliosis, Slip Disc, Fracture History',
+    'Heart Diseases': 'Includes: Hypertension, Coronary Artery Disease, Heart Attack History, Arrhythmia, Heart Failure',
+    'Diabetes': 'Includes: Type 1, Type 2, Pre-Diabetes, Gestational Diabetes',
+    'Thyroid/Hormonal Disorder': 'Includes: Hypothyroidism, Hyperthyroidism, PCOD/PCOS, Adrenal Disorder',
+    'Cancer/Tumor': 'Includes: Blood Cancer, Breast Cancer, Lung Cancer, Skin Cancer, Currently in treatment, In remission',
+  };
+
   const isNoneSelected = selectedConditions.includes("I don't have any disorders");
   const hasSelections = selectedConditions.length > 0;
 
   const handleClick = (condition: string) => {
-    // If clicking "I don't have any disorders", pass auto-confirm flag
     if (condition === "I don't have any disorders") {
-      onToggle(condition, true); // Pass true for auto-confirm
+      onToggle(condition, true);
     } else {
       onToggle(condition, false);
     }
@@ -1186,53 +1197,109 @@ function HealthConditionsSelector({
           (isNoneSelected && condition !== "I don't have any disorders") ||
           (!isNoneSelected && condition === "I don't have any disorders" && selectedConditions.length > 0)
         );
+        const hasInfo = condition !== "I don't have any disorders";
 
         return (
-          <motion.button
-            key={condition}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
-            whileTap={{ scale: isDisabled ? 1 : 0.98 }}
-            onClick={() => !isDisabled && handleClick(condition)}
-            disabled={isDisabled}
-            className={`relative flex items-center justify-between px-4 py-3 rounded-[14px] transition-all ${
-              isSelected 
-                ? 'bg-[#c21b17] text-white shadow-md' 
-                : isDisabled
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white hover:bg-[#fff7f7] text-[#c21b17] shadow-sm'
-            } ${
-              condition === "I don't have any disorders" && !isSelected && !isDisabled
-                ? 'border-2 border-green-500'
-                : ''
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+          <div key={condition} className="relative">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
+              className={`relative flex items-center justify-between px-4 py-3 rounded-[14px] transition-all cursor-pointer ${
                 isSelected 
-                  ? 'border-white bg-white' 
-                  : condition === "I don't have any disorders" && !isDisabled
-                  ? 'border-black'
-                  : 'border-[#c21b17]'
-              }`}>
-                {isSelected && (
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                    <path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </div>
-              <p className={`font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic text-[15px] text-left ${
+                  ? 'bg-[#c21b17] text-white shadow-md' 
+                  : isDisabled
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white hover:bg-[#fff7f7] text-[#c21b17] shadow-sm'
+              } ${
                 condition === "I don't have any disorders" && !isSelected && !isDisabled
-                  ? 'text-black'
+                  ? 'border-2 border-green-500'
                   : ''
-              }`}>
-                {t(condition)}
-              </p>
-            </div>
-          </motion.button>
+              }`}
+              onClick={() => !isDisabled && handleClick(condition)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                  isSelected 
+                    ? 'border-white bg-white' 
+                    : condition === "I don't have any disorders" && !isDisabled
+                    ? 'border-black'
+                    : 'border-[#c21b17]'
+                }`}>
+                  {isSelected && (
+                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                      <path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <p className={`font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic text-[15px] text-left ${
+                  condition === "I don't have any disorders" && !isSelected && !isDisabled
+                    ? 'text-black'
+                    : ''
+                }`}>
+                  {t(condition)}
+                </p>
+              </div>
+
+              {/* Info icon — only on disease categories */}
+              {hasInfo && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTooltip(activeTooltip === condition ? null : condition);
+                  }}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                    isSelected ? 'text-white/70 hover:text-white' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                  aria-label={`Info about ${condition}`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M8 7v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="8" cy="4.5" r="0.75" fill="currentColor"/>
+                  </svg>
+                </button>
+              )}
+            </motion.div>
+
+            {/* Tooltip popup */}
+            <AnimatePresence>
+              {activeTooltip === condition && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white rounded-[12px] shadow-[0px_4px_16px_rgba(0,0,0,0.12)] border border-gray-100 p-4"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#263238]">{condition}</p>
+                    <button
+                      onClick={() => setActiveTooltip(null)}
+                      className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-[13px] text-[#666] font-['Inter:Regular',sans-serif] leading-[1.5]">
+                    {conditionInfo[condition]}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         );
       })}
+
+      {/* Tap outside to close tooltip */}
+      {activeTooltip && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setActiveTooltip(null)}
+        />
+      )}
       
       {/* Confirm Button - only show when NOT "I don't have any disorders" */}
       {hasSelections && !isNoneSelected && (

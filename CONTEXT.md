@@ -43,6 +43,10 @@ e and auto-populate height and weight from open ai api key (phase 2, where ed
 iting the fields within a limit is working fine)
 14. Step 14: aft
 er photo upload analysis step added
+15.  Step 14: after photo is uploaded + analysis then
+ we show the estimated height and weight within step 14 only for continuation
+ 16. Added the physical measurements detection card in
+ step 14 for continuation and the flow jumps to step 22 and omits the step 21
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
