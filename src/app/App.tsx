@@ -7658,17 +7658,16 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       
       // If percentage is 100%, we're done with nominees
       if (totalPercentage >= 100) {
-        setCurrentStep(29); // Step 21 in UI (Height/Weight)
+        setCurrentStep(30); // Step 22 in UI (Weight Change) — H/W already confirmed in Step 14
         setTimeout(() => {
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: "From your full-length photograph, I have analysed the height and weight, are these measurements correct?",
+            content: 'Have you gained or lost more than 5kgs in the last 6 months?',
             sender: 'bot',
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setShowHeightWeightReview(true);
         }, 1000);
       } else {
         // Ask if they want to add another nominee
@@ -7778,17 +7777,16 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       
       // If percentage is 100%, we're done with nominees
       if (totalPercentage >= 100) {
-        setCurrentStep(29); // Step 21 in UI (Height/Weight)
+        setCurrentStep(30); // Step 22 in UI (Weight Change) — H/W already confirmed in Step 14
         setTimeout(() => {
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: "From your full-length photograph, I have analysed the height and weight, are these measurements correct?",
+            content: 'Have you gained or lost more than 5kgs in the last 6 months?',
             sender: 'bot',
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setShowHeightWeightReview(true);
         }, 1000);
       } else {
         // Ask if they want to add another nominee
@@ -7878,18 +7876,17 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
         }));
       }
       
-      // Move to next step (height/weight confirmation)
-      setCurrentStep(29); // Step 21 in UI (Height/Weight)
+      // Move to next step (weight change) — H/W already confirmed in Step 14
+      setCurrentStep(30);
       setTimeout(() => {
         setIsThinking(false);
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: "From your full-length photograph, I have analysed the height and weight, are these measurements correct?",
+          content: 'Have you gained or lost more than 5kgs in the last 6 months?',
           sender: 'bot',
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
-        setShowHeightWeightReview(true);
       }, 1000);
     }
     // Step 28.4: Collect contact info for parents when "Other" is also selected
