@@ -50,6 +50,8 @@ er photo upload analysis step added
  17. Health Questions: info icon for the list of health issues unde
 r a category
 18. Step 26: Cheque extraction through api key
+19. Edit details banner removal from the last SCR step and change of the stepper ux copy. 
+
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 

@@ -20,7 +20,7 @@ import imgIcon4 from 'figma:asset/7f9d264012cc83a80f7cb5acd5b31d45d8965a5a.png';
 import Mic from '../imports/Mic';
 import FathersName from '../imports/FathersName';
 import ProfessionalDetailsCard from '../imports/Container-684-514';
-import { EditBanner, DetailsPage, EditBottomSheet, EditPolicyBottomSheet } from './components/DetailsComponents';
+import { EditBanner, DetailsPage, EditBottomSheet, EditPolicyBottomSheet, EditHealthConditionsBottomSheet, EditSubstancesBottomSheet, EditAssetsBottomSheet } from './components/DetailsComponents';
 import { EditDocumentsBottomSheet } from './components/DocumentsComponents';
 import { EditFamilyDetailsBottomSheet } from './components/FamilyDetailsComponents';
 import { PlansList } from './components/PlanCards';
@@ -2257,6 +2257,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   const [showEditHeightWeightSheet, setShowEditHeightWeightSheet] = useState(false);
   const [showBankDetailsReview, setShowBankDetailsReview] = useState(false);
   const [showEditBankDetailsSheet, setShowEditBankDetailsSheet] = useState(false);
+  const [showEditHealthSheet, setShowEditHealthSheet] = useState(false);
+  const [showEditSubstancesSheet, setShowEditSubstancesSheet] = useState(false);
+  const [showEditAssetsSheet, setShowEditAssetsSheet] = useState(false);
   
   // Testing controls visibility
   const [showTestingControls, setShowTestingControls] = useState(true);
@@ -10495,6 +10498,21 @@ Rules:
     triggerSaveToast();
   };
 
+  const handleHealthConditionsSave = (conditions: string[]) => {
+    setUserData((prev) => ({ ...prev, healthConditions: conditions }));
+    triggerSaveToast();
+  };
+
+  const handleSubstancesSave = (substances: string[]) => {
+    setUserData((prev) => ({ ...prev, substanceConsumption: substances }));
+    triggerSaveToast();
+  };
+
+  const handleAssetsSave = (assets: string[]) => {
+    setUserData((prev) => ({ ...prev, assets }));
+    triggerSaveToast();
+  };
+
   const handleFamilyDetailsSave = (updatedData: Partial<typeof userData>) => {
     setUserData((prev) => ({
       ...prev,
@@ -11399,6 +11417,11 @@ Rules:
                 onEditProfessionalDetails={() => setShowEditProfessionalDetailsSheet(true)}
                 onEditFamilyDetails={() => setShowEditFamilyDetailsSheet(true)}
                 onEditHeightWeight={() => setShowEditHeightWeightSheet(true)}
+                onEditHealthQuestions={() => setShowEditHealthSheet(true)}
+                onEditSubstances={() => setShowEditSubstancesSheet(true)}
+                onEditAssets={() => setShowEditAssetsSheet(true)}
+                onEditBankDetails={() => setShowEditBankDetailsSheet(true)}
+                onEditNominees={() => {}}
               />
             )}
           </AnimatePresence>
@@ -11472,6 +11495,39 @@ Rules:
                 userData={userData}
                 onClose={() => setShowEditBankDetailsSheet(false)}
                 onSave={handleBankDetailsSave}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Edit Health Conditions Bottom Sheet */}
+          <AnimatePresence>
+            {showEditHealthSheet && (
+              <EditHealthConditionsBottomSheet
+                healthConditions={userData.healthConditions || []}
+                onClose={() => setShowEditHealthSheet(false)}
+                onSave={handleHealthConditionsSave}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Edit Substances Bottom Sheet */}
+          <AnimatePresence>
+            {showEditSubstancesSheet && (
+              <EditSubstancesBottomSheet
+                substanceConsumption={userData.substanceConsumption || []}
+                onClose={() => setShowEditSubstancesSheet(false)}
+                onSave={handleSubstancesSave}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Edit Assets Bottom Sheet */}
+          <AnimatePresence>
+            {showEditAssetsSheet && (
+              <EditAssetsBottomSheet
+                assets={userData.assets || []}
+                onClose={() => setShowEditAssetsSheet(false)}
+                onSave={handleAssetsSave}
               />
             )}
           </AnimatePresence>

@@ -118,6 +118,9 @@ interface DetailsPageProps {
     accountNumber?: string;
     ifscCode?: string;
     branchName?: string;
+    // Nominees
+    nominees?: Array<{ fullName: string; relationship: string; percentage: number; dateOfBirth?: string }>;
+    selectedNominees?: string[];
   };
   documents?: Record<string, File | null>;
   previewUrls?: Record<string, string>;
@@ -133,9 +136,10 @@ interface DetailsPageProps {
   onEditSubstances?: () => void;
   onEditAssets?: () => void;
   onEditBankDetails?: () => void;
+  onEditNominees?: () => void;
 }
 
-export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, onEditPolicy, onEditDocuments, onEditPersonalDetails, onEditProfessionalDetails, onEditFamilyDetails, onEditHeightWeight, onEditHealthQuestions, onEditSubstances, onEditAssets, onEditBankDetails }: DetailsPageProps) {
+export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, onEditPolicy, onEditDocuments, onEditPersonalDetails, onEditProfessionalDetails, onEditFamilyDetails, onEditHeightWeight, onEditHealthQuestions, onEditSubstances, onEditAssets, onEditBankDetails, onEditNominees }: DetailsPageProps) {
   // State to track which cards are expanded
   const [expandedCards, setExpandedCards] = useState<{
     onboarding: boolean;
@@ -149,6 +153,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
     substances: boolean;
     assets: boolean;
     bank: boolean;
+    nominee: boolean;
   }>({
     onboarding: true,
     policy: true,
@@ -161,6 +166,7 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
     substances: true,
     assets: true,
     bank: true,
+    nominee: true,
   });
 
   const toggleCard = (cardName: keyof typeof expandedCards) => {
@@ -799,6 +805,31 @@ export function DetailsPage({ userData, documents, previewUrls, onBack, onEdit, 
                             </div>
                           </div>
                         </div>
+          </CollapsibleCard>
+        )}
+
+        {/* Card 12: Nominee Details */}
+        {(userData.nominees && userData.nominees.length > 0) && (
+          <CollapsibleCard title="Nominee Details" isExpanded={expandedCards.nominee} onToggle={() => toggleCard('nominee')} onEdit={onEditNominees || (() => {})}>
+            <div className="relative shrink-0 w-full">
+              <div aria-hidden="true" className="absolute border-[0.5px_0px_0px] border-[rgba(0,0,0,0.05)] border-solid inset-0 pointer-events-none" />
+              <div className="overflow-clip rounded-[inherit] size-full">
+                <div className="content-stretch flex flex-col items-start pb-0 pt-[0.5px] px-[16px] relative w-full">
+                  {userData.nominees.map((nominee, index) => (
+                    <div key={index} className="content-stretch flex flex-col w-full pb-[8px] pt-[8px] border-b border-[rgba(0,0,0,0.05)] last:border-0">
+                      <div className="content-stretch flex items-start justify-between w-full">
+                        <p className="font-['Inter:Regular',sans-serif] font-normal text-[#666] text-[13px]">{nominee.relationship}</p>
+                        <p className="font-['Inter:Medium',sans-serif] font-medium text-[#263238] text-[13px] text-right">{nominee.fullName}</p>
+                      </div>
+                      <div className="content-stretch flex items-start justify-between w-full mt-[4px]">
+                        <p className="font-['Inter:Regular',sans-serif] font-normal text-[#666] text-[13px]">Share</p>
+                        <p className="font-['Inter:Medium',sans-serif] font-medium text-[#263238] text-[13px] text-right">{nominee.percentage}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </CollapsibleCard>
         )}
       </div>
@@ -1538,6 +1569,222 @@ export function EditPolicyBottomSheet({ userData, onClose, onSave, onConfirmChan
               </div>
             </div>
           </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ─── Edit Health Conditions Bottom Sheet ────────────────────────────────────
+
+export function EditHealthConditionsBottomSheet({
+  healthConditions,
+  onClose,
+  onSave,
+}: {
+  healthConditions: string[];
+  onClose: () => void;
+  onSave: (conditions: string[]) => void;
+}) {
+  const [local, setLocal] = useState<string[]>(healthConditions);
+
+  const conditions = [
+    'Respiratory',
+    'Digestive System',
+    'Bone Disorder',
+    'Heart Diseases',
+    'Diabetes',
+    'Thyroid/Hormonal Disorder',
+    'Cancer/Tumor',
+    "I don't have any disorders",
+  ];
+
+  const toggle = (c: string) => {
+    if (c === "I don't have any disorders") {
+      setLocal([c]);
+    } else {
+      setLocal(prev => {
+        const without = prev.filter(x => x !== "I don't have any disorders");
+        return without.includes(c) ? without.filter(x => x !== c) : [...without, c];
+      });
+    }
+  };
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute bg-[rgba(0,0,0,0.4)] h-full left-0 top-0 w-full z-50" />
+      <motion.div
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="absolute bg-white bottom-0 flex flex-col left-0 max-h-[85vh] overflow-y-auto pb-8 rounded-tl-[20px] rounded-tr-[20px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full z-50"
+      >
+        <div className="flex items-center justify-between px-[20px] pt-[16px] pb-[12px] border-b border-[#e5e7eb]">
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[16px] text-[#101828]">Edit Health Conditions</p>
+          <button onClick={onClose} className="text-[#666] text-[20px] leading-none">✕</button>
+        </div>
+        <div className="flex flex-col gap-3 px-5 pt-4">
+          {conditions.map(c => {
+            const isSelected = local.includes(c);
+            const isNone = local.includes("I don't have any disorders");
+            const isDisabled = !isSelected && ((isNone && c !== "I don't have any disorders") || (!isNone && c === "I don't have any disorders" && local.length > 0));
+            return (
+              <button
+                key={c}
+                onClick={() => !isDisabled && toggle(c)}
+                disabled={isDisabled}
+                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-left transition-all ${isSelected ? 'bg-[#c21b17] text-white shadow-md' : isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-[#c21b17] shadow-sm'} ${c === "I don't have any disorders" && !isSelected && !isDisabled ? 'border-2 border-green-500' : ''}`}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-white bg-white' : 'border-[#c21b17]'}`}>
+                  {isSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <span className="font-['Inter:Medium',sans-serif] font-medium text-[15px]">{c}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-3 px-5 pt-5">
+          <button onClick={onClose} className="flex-1 h-[50px] rounded-[12px] border border-[#d1d5dc] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#263238]">Cancel</button>
+          <button onClick={() => { onSave(local); onClose(); }} className="flex-1 h-[50px] rounded-[12px] bg-gradient-to-b from-[#c21b17] to-[#a11612] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-white">Save Changes</button>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ─── Edit Substances Bottom Sheet ───────────────────────────────────────────
+
+export function EditSubstancesBottomSheet({
+  substanceConsumption,
+  onClose,
+  onSave,
+}: {
+  substanceConsumption: string[];
+  onClose: () => void;
+  onSave: (substances: string[]) => void;
+}) {
+  const [local, setLocal] = useState<string[]>(substanceConsumption);
+
+  const substances = [
+    'Tobacco',
+    'Alcohol',
+    'Narcotics',
+    "I don't consume any substances",
+  ];
+
+  const toggle = (s: string) => {
+    if (s === "I don't consume any substances") {
+      setLocal([s]);
+    } else {
+      setLocal(prev => {
+        const without = prev.filter(x => x !== "I don't consume any substances");
+        return without.includes(s) ? without.filter(x => x !== s) : [...without, s];
+      });
+    }
+  };
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute bg-[rgba(0,0,0,0.4)] h-full left-0 top-0 w-full z-50" />
+      <motion.div
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="absolute bg-white bottom-0 flex flex-col left-0 max-h-[85vh] overflow-y-auto pb-8 rounded-tl-[20px] rounded-tr-[20px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full z-50"
+      >
+        <div className="flex items-center justify-between px-[20px] pt-[16px] pb-[12px] border-b border-[#e5e7eb]">
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[16px] text-[#101828]">Edit Substance Consumption</p>
+          <button onClick={onClose} className="text-[#666] text-[20px] leading-none">✕</button>
+        </div>
+        <div className="flex flex-col gap-3 px-5 pt-4">
+          {substances.map(s => {
+            const isSelected = local.includes(s);
+            const isNone = local.includes("I don't consume any substances");
+            const isDisabled = !isSelected && ((isNone && s !== "I don't consume any substances") || (!isNone && s === "I don't consume any substances" && local.length > 0));
+            return (
+              <button
+                key={s}
+                onClick={() => !isDisabled && toggle(s)}
+                disabled={isDisabled}
+                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-left transition-all ${isSelected ? 'bg-[#c21b17] text-white shadow-md' : isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-[#c21b17] shadow-sm'} ${s === "I don't consume any substances" && !isSelected && !isDisabled ? 'border-2 border-green-500' : ''}`}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-white bg-white' : 'border-[#c21b17]'}`}>
+                  {isSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <span className="font-['Inter:Medium',sans-serif] font-medium text-[15px]">{s}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-3 px-5 pt-5">
+          <button onClick={onClose} className="flex-1 h-[50px] rounded-[12px] border border-[#d1d5dc] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#263238]">Cancel</button>
+          <button onClick={() => { onSave(local); onClose(); }} className="flex-1 h-[50px] rounded-[12px] bg-gradient-to-b from-[#c21b17] to-[#a11612] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-white">Save Changes</button>
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+// ─── Edit Assets Bottom Sheet ────────────────────────────────────────────────
+
+export function EditAssetsBottomSheet({
+  assets,
+  onClose,
+  onSave,
+}: {
+  assets: string[];
+  onClose: () => void;
+  onSave: (assets: string[]) => void;
+}) {
+  const [local, setLocal] = useState<string[]>(assets);
+
+  const assetOptions = [
+    '2 wheeler',
+    'Own house',
+    'Small Car/Sedan/SUV',
+    'Land',
+    'Bank Deposits',
+    'Home Loan',
+    'Car/personal loan',
+    'Pension Plan',
+    'Life Insurance',
+    'Health Insurance',
+  ];
+
+  const toggle = (a: string) => {
+    setLocal(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+  };
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute bg-[rgba(0,0,0,0.4)] h-full left-0 top-0 w-full z-50" />
+      <motion.div
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="absolute bg-white bottom-0 flex flex-col left-0 max-h-[85vh] overflow-y-auto pb-8 rounded-tl-[20px] rounded-tr-[20px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] w-full z-50"
+      >
+        <div className="flex items-center justify-between px-[20px] pt-[16px] pb-[12px] border-b border-[#e5e7eb]">
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[16px] text-[#101828]">Edit Assets</p>
+          <button onClick={onClose} className="text-[#666] text-[20px] leading-none">✕</button>
+        </div>
+        <div className="flex flex-col gap-3 px-5 pt-4">
+          {assetOptions.map(a => {
+            const isSelected = local.includes(a);
+            return (
+              <button
+                key={a}
+                onClick={() => toggle(a)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-left transition-all ${isSelected ? 'bg-[#c21b17] text-white shadow-md' : 'bg-white text-[#c21b17] shadow-sm'}`}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-white bg-white' : 'border-[#c21b17]'}`}>
+                  {isSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <span className="font-['Inter:Medium',sans-serif] font-medium text-[15px]">{a}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-3 px-5 pt-5">
+          <button onClick={onClose} className="flex-1 h-[50px] rounded-[12px] border border-[#d1d5dc] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#263238]">Cancel</button>
+          <button onClick={() => { onSave(local); onClose(); }} className="flex-1 h-[50px] rounded-[12px] bg-gradient-to-b from-[#c21b17] to-[#a11612] font-['Inter:Bold',sans-serif] font-bold text-[16px] text-white">Save Changes</button>
         </div>
       </motion.div>
     </>
