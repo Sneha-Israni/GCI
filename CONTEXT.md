@@ -49,6 +49,7 @@ er photo upload analysis step added
  step 14 for continuation and the flow jumps to step 22 and omits the step 21
  17. Health Questions: info icon for the list of health issues unde
 r a category
+18. Step 26: Cheque extraction through api key
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 

@@ -10889,13 +10889,13 @@ Rules:
           ) : (
             <>
               {/* Progress Stepper — only show on the main chat/onboarding flow */}
-              {currentView === 'chat' && (
+              {currentView === 'chat' && currentStep <= 40 && (
               <div className="absolute left-1/2 -translate-x-1/2 top-[67px] z-40">
                 <ProgressStepper
-                  key={`step-${displayStep}`}
-                  currentStep={displayStep}
+                  key={`step-${currentStep === 40 ? 'complete' : displayStep}`}
+                  currentStep={currentStep === 40 ? 31 : displayStep}
                   totalSteps={31}
-                  stepTitle={getStepTitle(currentStep)}
+                  stepTitle={currentStep === 40 ? "100%, You've made it! 🎉" : getStepTitle(currentStep)}
                   className="w-[396px]"
                 />
               </div>
@@ -10917,7 +10917,7 @@ Rules:
               )}
 
               {/* Edit Details Banner - Show from step 2 onwards */}
-              {currentStep >= 2 && currentView === 'chat' && (
+              {currentStep >= 2 && currentStep < 39 && currentView === 'chat' && (
                 <div className="absolute left-0 top-[65px] w-full z-40">
                   <EditBanner onClick={() => setCurrentView('details')} />
                 </div>
