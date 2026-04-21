@@ -2181,6 +2181,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   const [showProfessionalDetailsReview, setShowProfessionalDetailsReview] = useState(false);
   const [showEditProfessionalDetailsSheet, setShowEditProfessionalDetailsSheet] = useState(false);
   const [showHeightWeightReview, setShowHeightWeightReview] = useState(false);
+  const [isAnalysingPhoto, setIsAnalysingPhoto] = useState(false);
   const [showNomineeShareEditor, setShowNomineeShareEditor] = useState(false);
   const [nomineeListForEditor, setNomineeListForEditor] = useState<string[]>([]);
   const [showEditHeightWeightSheet, setShowEditHeightWeightSheet] = useState(false);
@@ -9423,6 +9424,17 @@ Rules:
     setMessages((prev) => [...prev, userMessage]);
     setCurrentStep(21);
 
+    // Show analysis message and start thinking animation
+    const analysingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: 'Analysing your photo, please wait...',
+      sender: 'bot',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, analysingMessage]);
+    setIsThinking(true);
+    setIsAnalysingPhoto(true);
+
     // Analyse photo with OpenAI Vision to estimate height and weight
     const photoFile = userData.fullLengthPhoto;
     if (photoFile) {
@@ -9517,6 +9529,10 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
         }));
       }
     }
+
+    // Stop animation
+    setIsThinking(false);
+    setIsAnalysingPhoto(false);
 
     // Show personal details review
     setTimeout(() => {
