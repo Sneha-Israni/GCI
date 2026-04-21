@@ -2145,6 +2145,8 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     // Physical measurements from full-length photo
     height: '',
     weight: '',
+    aiEstimatedHeight: 0,
+    aiEstimatedWeight: 0,
     weightChange: '', // Weight gain/loss > 5kg in last 6 months
     // Health conditions
     healthConditions: [] as string[],
@@ -9410,7 +9412,7 @@ Rules:
     }));
   };
 
-  const handleFullLengthPhotoComplete = () => {
+  const handleFullLengthPhotoComplete = async () => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: 'Photo uploaded',
@@ -9419,7 +9421,102 @@ Rules:
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setCurrentStep(21); // Step 15 in UI (Personal Details)
+    setCurrentStep(21);
+
+    // Analyse photo with OpenAI Vision to estimate height and weight
+    const photoFile = userData.fullLengthPhoto;
+    if (photoFile) {
+      try {
+        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+        if (apiKey) {
+          const toBase64 = (f: File): Promise<string> =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]);
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(f);
+            });
+
+          const base64 = await toBase64(photoFile);
+          const mimeType = photoFile.type === 'image/jpg' ? 'image/jpeg' : photoFile.type;
+
+          const photoPrompt = `This is a full-body photograph of a person. Estimate their physical measurements based on body proportions and visible build.
+Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
+{
+  "height_cm": [single number],
+  "weight_kg": [single number],
+  "confidence": "low" or "medium" or "high"
+}`;
+
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: photoPrompt },
+                    {
+                      type: 'image_url',
+                      image_url: {
+                        url: `data:${mimeType};base64,${base64}`,
+                        detail: 'high',
+                      },
+                    },
+                  ],
+                },
+              ],
+              max_tokens: 100,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+            console.log('📏 Full-length photo AI response:', rawContent);
+            try {
+              const parsed = JSON.parse(rawContent);
+              const heightNum = Number(parsed.height_cm) || 165;
+              const weightNum = Number(parsed.weight_kg) || 65;
+              setUserData((prev) => ({
+                ...prev,
+                height: `${heightNum} cm`,
+                weight: `${weightNum} kg`,
+                aiEstimatedHeight: heightNum,
+                aiEstimatedWeight: weightNum,
+              }));
+            } catch {
+              // Parsing failed — use fallback
+              setUserData((prev) => ({
+                ...prev,
+                height: '165 cm',
+                weight: '65 kg',
+                aiEstimatedHeight: 165,
+                aiEstimatedWeight: 65,
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Photo analysis error:', err);
+        // Fallback on any error
+        setUserData((prev) => ({
+          ...prev,
+          height: '165 cm',
+          weight: '65 kg',
+          aiEstimatedHeight: 165,
+          aiEstimatedWeight: 65,
+        }));
+      }
+    }
 
     // Show personal details review
     setTimeout(() => {
