@@ -2233,6 +2233,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     accountNumber: '',
     ifscCode: '',
     branchName: '',
+    accountHolderName: '',
+    micrCode: '',
+    bankAiExtractionConfidence: '',
   });
 
   // View tracking
@@ -2481,6 +2484,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
 
   // Testing: Step navigation
   const jumpToStep = (step: number) => {
+    setIsLoggedIn(true);
+    setShowIntroScreen(false);
+    setShowLanguageSelection(false);
     setIsListening(false);
     setInputValue('');
     setInterimTranscript('');
@@ -10286,28 +10292,107 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
     // Show processing indicator
     setIsProcessingCheque(true);
 
-    // Simulate processing delay for better UX
-    setTimeout(() => {
-      // Extract mock bank details from cheque
-      const extractedBankDetails = {
-        bankName: 'HDFC Bank',
-        accountNumber: '50100123456789',
-        ifscCode: 'HDFC0001234',
-        branchName: 'MG Road, Bangalore',
-      };
+    try {
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      if (!apiKey) {
+        console.error('❌ VITE_OPENAI_API_KEY is not set');
+        setIsProcessingCheque(false);
+        return;
+      }
 
-      // Update user data with extracted bank details
-      setUserData((prev) => ({
-        ...prev,
-        bankName: extractedBankDetails.bankName,
-        accountNumber: extractedBankDetails.accountNumber,
-        ifscCode: extractedBankDetails.ifscCode,
-        branchName: extractedBankDetails.branchName,
-      }));
+      // Convert cheque image to base64 — reusing existing pattern
+      const toBase64 = (f: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(f);
+        });
 
-      console.log('Cheque uploaded and bank details extracted successfully.');
+      const base64 = await toBase64(file);
+      const mimeType = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
+
+      const chequePrompt = `This is an image of a bank cheque from India. Extract the following details accurately.
+Return ONLY a valid JSON object with no explanation, no markdown, no backticks:
+{
+  "account_holder_name": string,
+  "bank_name": string,
+  "account_number": string,
+  "ifsc_code": string,
+  "branch_name": string,
+  "micr_code": "string or null if not visible",
+  "confidence": "low or medium or high"
+}
+
+Rules:
+- If any field is not clearly visible or readable, return an empty string for that field
+- Do not guess or hallucinate values
+- account_number and ifsc_code must be extracted exactly as printed
+- confidence should reflect overall readability of the cheque`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: chequePrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64}`,
+                    detail: 'high',
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 400,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+        console.log('🏦 Cheque extraction raw response:', rawContent);
+
+        let extracted: Record<string, string | null> = {};
+        try {
+          extracted = JSON.parse(rawContent);
+        } catch (parseErr) {
+          console.error('❌ Failed to parse cheque JSON:', parseErr, rawContent);
+        }
+
+        setUserData((prev) => ({
+          ...prev,
+          accountHolderName: extracted.account_holder_name || '',
+          bankName: extracted.bank_name || '',
+          accountNumber: extracted.account_number || '',
+          ifscCode: extracted.ifsc_code || '',
+          branchName: extracted.branch_name || '',
+          micrCode: (extracted.micr_code && extracted.micr_code !== 'null') ? extracted.micr_code : '',
+          bankAiExtractionConfidence: extracted.confidence || 'low',
+        }));
+
+        console.log('✅ Cheque bank details extracted successfully.');
+      } else {
+        const errText = await response.text();
+        console.error(`❌ OpenAI Vision error ${response.status}:`, errText);
+      }
+    } catch (err) {
+      console.error('❌ Cheque extraction error:', err);
+    } finally {
       setIsProcessingCheque(false);
-    }, 1500);
+    }
   };
 
   const handleChequeUploadComplete = () => {
@@ -10407,6 +10492,7 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
       ...prev,
       ...updatedData,
     }));
+    triggerSaveToast();
   };
 
   const handleFamilyDetailsSave = (updatedData: Partial<typeof userData>) => {
@@ -10602,187 +10688,181 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
           </button>
           <button
             onClick={() => jumpToStep(1)}
-            className={`${currentStep === 1 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 1 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 1: Age/Gender
           </button>
           <button
             onClick={() => jumpToStep(2)}
-            className={`${currentStep === 2 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 2 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 2: Goal Selection
           </button>
           <button
             onClick={() => jumpToStep(3)}
-            className={`${currentStep === 3 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 3 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 3: Goal Details
           </button>
           <button
             onClick={() => jumpToStep(4)}
-            className={`${currentStep === 4 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 4 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 4: Policy Type
           </button>
           <button
             onClick={() => jumpToStep(5)}
-            className={`${currentStep === 5 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 5 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 5: Risk Tolerance
           </button>
           <button
             onClick={() => jumpToStep(6)}
-            className={`${currentStep === 6 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 6 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 6: Plans Selection
           </button>
           <button
             onClick={() => jumpToStep(7)}
-            className={`${currentStep === 7 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 7 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 7: Riders
           </button>
           <button
             onClick={() => jumpToStep(8)}
-            className={`${currentStep === 8 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 8 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 8: Premium Calculator
           </button>
           <button
             onClick={() => jumpToStep(9)}
-            className={`${currentStep === 9 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 9 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 9: Summary
           </button>
           <button
             onClick={() => jumpToStep(16)}
-            className={`${currentStep === 16 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 16 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 10: PLVC
           </button>
           <button
             onClick={() => jumpToStep(17)}
-            className={`${currentStep === 17 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 17 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 11: KYC
           </button>
           <button
             onClick={() => jumpToStep(18)}
-            className={`${currentStep === 18 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 18 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 12: Docs (Physical)
           </button>
           <button
             onClick={() => jumpToStep(19)}
-            className={`${currentStep === 19 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 19 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 13: Docs (Digi)
           </button>
           <button
             onClick={() => jumpToStep(20)}
-            className={`${currentStep === 20 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 20 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 14: Full Photo
           </button>
           <button
             onClick={() => jumpToStep(21)}
-            className={`${currentStep === 21 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 21 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 15: Personal Details
           </button>
           <button
             onClick={() => jumpToStep(22)}
-            className={`${currentStep === 22 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 22 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 16: Professional Details
           </button>
           <button
             onClick={() => jumpToStep(23)}
-            className={`${currentStep === 23 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 23 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 17: Annual Income
           </button>
           <button
             onClick={() => jumpToStep(24)}
-            className={`${currentStep === 24 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 24 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 18: Father Details
           </button>
           <button
             onClick={() => jumpToStep(26)}
-            className={`${currentStep === 26 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 26 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 19: Mother Details
           </button>
           <button
             onClick={() => jumpToStep(28)}
-            className={`${currentStep === 28 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 28 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 20: Nominee Details
           </button>
           <button
-            onClick={() => jumpToStep(29)}
-            className={`${currentStep === 29 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
-          >
-            Step 21: Height/Weight
-          </button>
-          <button
             onClick={() => jumpToStep(30)}
-            className={`${currentStep === 30 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 30 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 22: Weight Change
           </button>
           <button
             onClick={() => jumpToStep(31)}
-            className={`${currentStep === 31 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 31 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 23: Health Conditions
           </button>
           <button
             onClick={() => jumpToStep(32)}
-            className={`${currentStep === 32 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 32 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 24: Substances
           </button>
           <button
             onClick={() => jumpToStep(33)}
-            className={`${currentStep === 33 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 33 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 25: Assets
           </button>
           <button
             onClick={() => jumpToStep(34)}
-            className={`${currentStep === 34 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 34 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 26: Bank Details
           </button>
           <button
             onClick={() => jumpToStep(35)}
-            className={`${currentStep === 35 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 35 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 27: Declarations
           </button>
           <button
             onClick={() => jumpToStep(36)}
-            className={`${currentStep === 36 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 36 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 28: Payment
           </button>
           <button
             onClick={() => jumpToStep(37)}
-            className={`${currentStep === 37 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 37 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 29: Declaration
           </button>
           <button
             onClick={() => jumpToStep(38)}
-            className={`${currentStep === 38 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 38 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 30: OTP
           </button>
           <button
             onClick={() => jumpToStep(39)}
-            className={`${currentStep === 39 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
+            className={`${isLoggedIn && currentStep === 39 ? 'bg-[#c21b17] text-white ring-2 ring-[#c21b17] ring-offset-2' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} px-4 py-2 rounded text-sm transition-all`}
           >
             Step 31: SCR
           </button>

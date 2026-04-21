@@ -516,6 +516,9 @@ interface ReviewBankDetailsProps {
     accountNumber: string;
     ifscCode: string;
     branchName: string;
+    accountHolderName?: string;
+    micrCode?: string;
+    bankAiExtractionConfidence?: string;
   };
   onEdit: () => void;
   onConfirm: () => void;
@@ -533,16 +536,22 @@ export function ReviewBankDetailsCard({ userData, onEdit, onConfirm }: ReviewBan
       <div className="bg-white relative rounded-[16px] w-full shadow-[0px_2px_8px_rgba(0,0,0,0.08)]">
         <div className="p-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <h3 className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[16px] text-[#263238]">
               Bank Details
             </h3>
-            <button
-              onClick={onEdit}
-              className="text-[#c21b17] font-['Inter:Medium',sans-serif] font-medium text-[14px]"
-            >
-              Edit
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Auto extracted badge */}
+              <span className="bg-[#e6f4ea] text-[#1e7e34] text-[11px] font-['Inter:Medium',sans-serif] font-medium px-2 py-0.5 rounded-full">
+                Auto extracted
+              </span>
+              <button
+                onClick={onEdit}
+                className="text-[#c21b17] font-['Inter:Medium',sans-serif] font-medium text-[14px]"
+              >
+                Edit
+              </button>
+            </div>
           </div>
 
           {/* Details Grid */}
@@ -584,6 +593,16 @@ export function ReviewBankDetailsCard({ userData, onEdit, onConfirm }: ReviewBan
               </p>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
                 {userData.branchName}
+              </p>
+            </div>
+
+            {/* MICR Code */}
+            <div className="flex justify-between items-start">
+              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
+                MICR Code
+              </p>
+              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
+                {userData.micrCode || 'Not detected'}
               </p>
             </div>
           </div>

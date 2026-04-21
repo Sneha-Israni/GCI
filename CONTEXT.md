@@ -47,6 +47,8 @@ er photo upload analysis step added
  we show the estimated height and weight within step 14 only for continuation
  16. Added the physical measurements detection card in
  step 14 for continuation and the flow jumps to step 22 and omits the step 21
+ 17. Health Questions: info icon for the list of health issues unde
+r a category
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
