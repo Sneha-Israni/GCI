@@ -11284,6 +11284,8 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
             {showEditHeightWeightSheet && (
               <EditHeightWeightBottomSheet
                 userData={userData}
+                aiEstimatedHeight={userData.aiEstimatedHeight}
+                aiEstimatedWeight={userData.aiEstimatedWeight}
                 onClose={() => setShowEditHeightWeightSheet(false)}
                 onSave={(newData) => { handleHeightWeightSave(newData); triggerSaveToast(); }}
               />

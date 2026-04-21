@@ -100,14 +100,54 @@ interface EditHeightWeightBottomSheetProps {
     height: string;
     weight: string;
   };
+  aiEstimatedHeight?: number;
+  aiEstimatedWeight?: number;
   onClose: () => void;
   onSave: (data: any) => void;
 }
 
-export function EditHeightWeightBottomSheet({ userData, onClose, onSave }: EditHeightWeightBottomSheetProps) {
+export function EditHeightWeightBottomSheet({ userData, aiEstimatedHeight, aiEstimatedWeight, onClose, onSave }: EditHeightWeightBottomSheetProps) {
   const [formData, setFormData] = React.useState(userData);
+  const [heightError, setHeightError] = React.useState('');
+  const [weightError, setWeightError] = React.useState('');
+
+  const parseNumber = (val: string) => {
+    const num = parseFloat(val.replace(/[^0-9.]/g, ''));
+    return isNaN(num) ? null : num;
+  };
+
+  const handleHeightChange = (val: string) => {
+    setFormData({ ...formData, height: val });
+    if (aiEstimatedHeight) {
+      const num = parseNumber(val);
+      if (num === null) {
+        setHeightError('');
+      } else if (num < aiEstimatedHeight - 8 || num > aiEstimatedHeight + 8) {
+        setHeightError('Please enter a value within 8cm of your estimated measurement');
+      } else {
+        setHeightError('');
+      }
+    }
+  };
+
+  const handleWeightChange = (val: string) => {
+    setFormData({ ...formData, weight: val });
+    if (aiEstimatedWeight) {
+      const num = parseNumber(val);
+      if (num === null) {
+        setWeightError('');
+      } else if (num < aiEstimatedWeight - 12 || num > aiEstimatedWeight + 12) {
+        setWeightError('Please enter a value within 12kg of your estimated measurement');
+      } else {
+        setWeightError('');
+      }
+    }
+  };
+
+  const isSaveBlocked = !!heightError || !!weightError;
 
   const handleSave = () => {
+    if (isSaveBlocked) return;
     onSave(formData);
     onClose();
   };
@@ -163,13 +203,16 @@ export function EditHeightWeightBottomSheet({ userData, onClose, onSave }: EditH
                           <input
                             type="text"
                             value={formData.height}
-                            onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                            onChange={(e) => handleHeightChange(e.target.value)}
                             placeholder="e.g., 175 cm or 5'9&quot;"
                             className="absolute content-stretch flex h-[19.5px] items-center left-[12px] overflow-clip top-[14px] w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[16px] text-black bg-transparent outline-none placeholder:text-[#999]"
                           />
                         </div>
-                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                        <div className={`absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border pointer-events-none ${heightError ? 'border-[#c21b17]' : 'border-[#e5e7eb]'}`} />
                       </div>
+                      {heightError && (
+                        <p className="text-[#c21b17] text-[12px] font-['Inter:Regular',sans-serif] mt-1">{heightError}</p>
+                      )}
                     </div>
 
                     {/* Weight */}
@@ -182,13 +225,16 @@ export function EditHeightWeightBottomSheet({ userData, onClose, onSave }: EditH
                           <input
                             type="text"
                             value={formData.weight}
-                            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                            onChange={(e) => handleWeightChange(e.target.value)}
                             placeholder="e.g., 70 kg or 154 lbs"
                             className="absolute content-stretch flex h-[19.5px] items-center left-[12px] overflow-clip top-[14px] w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[16px] text-black bg-transparent outline-none placeholder:text-[#999]"
                           />
                         </div>
-                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                        <div className={`absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border pointer-events-none ${weightError ? 'border-[#c21b17]' : 'border-[#e5e7eb]'}`} />
                       </div>
+                      {weightError && (
+                        <p className="text-[#c21b17] text-[12px] font-['Inter:Regular',sans-serif] mt-1">{weightError}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -212,7 +258,8 @@ export function EditHeightWeightBottomSheet({ userData, onClose, onSave }: EditH
                   </button>
                   <button
                     onClick={handleSave}
-                    className="basis-0 bg-gradient-to-b from-[#c21b17] grow h-[50px] min-h-px min-w-px relative rounded-[12px] shrink-0 to-[#a11612]"
+                    disabled={isSaveBlocked}
+                    className={`basis-0 grow h-[50px] min-h-px min-w-px relative rounded-[12px] shrink-0 ${isSaveBlocked ? 'bg-[#e0a09e] cursor-not-allowed' : 'bg-gradient-to-b from-[#c21b17] to-[#a11612]'}`}
                   >
                     <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic text-[16px] text-center text-white">
                       Save Changes
