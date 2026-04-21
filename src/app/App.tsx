@@ -9534,17 +9534,17 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
     setIsThinking(false);
     setIsAnalysingPhoto(false);
 
-    // Show personal details review
+    // Show Height/Weight card immediately after analysis
     setTimeout(() => {
-      const reviewMessage: Message = {
+      const hwMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Ta-da! I've filled these in from your documents. Review them once?",
+        content: 'From your full-length photograph, I have analysed the height and weight, are these measurements correct?',
         sender: 'bot',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, reviewMessage]);
-      setShowPersonalDetailsReview(true);
-    }, 1000);
+      setMessages((prev) => [...prev, hwMessage]);
+      setShowHeightWeightReview(true);
+    }, 500);
   };
 
   const handleFullLengthPhotoSkip = () => {
@@ -9863,7 +9863,6 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
 
   const handleHeightWeightConfirm = () => {
     setShowHeightWeightReview(false);
-    setCurrentStep(30); // Step 22 in UI (Weight Change)
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -9871,19 +9870,33 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
       sender: 'user',
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
 
-    // Ask about weight gain/loss
-    setTimeout(() => {
-      const nextMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Have you gained or lost more than 5kgs in the last 6 months?',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, nextMessage]);
-    }, 1000);
+    if (currentStep === 21) {
+      // Coming from Step 14 (photo upload path) — show Personal Details next
+      setTimeout(() => {
+        const reviewMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "Ta-da! I've filled these in from your documents. Review them once?",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, reviewMessage]);
+        setShowPersonalDetailsReview(true);
+      }, 1000);
+    } else {
+      // Coming from Step 21 (nominees path) — go to Weight Change
+      setCurrentStep(30);
+      setTimeout(() => {
+        const nextMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'Have you gained or lost more than 5kgs in the last 6 months?',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, nextMessage]);
+      }, 1000);
+    }
   };
 
   const handleHeightWeightSave = (updatedData: {

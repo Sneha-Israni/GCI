@@ -35,6 +35,14 @@ Working:
 7. Step 3 is fixed
 8. Document Upload Cards (it was showing 3, changed to 2)
 9. Document Upload field extraction
+10. Professional Details steo, open ai api key integrated to auto-fetch the details 
+11. Professional Details parameters re-arrangement order and changing the auto-filled badge color to green
+12. Photo Capture and auto-populate the height and weight from open ai api key (phase 1 is working fine)
+13. Photo captur
+e and auto-populate height and weight from open ai api key (phase 2, where ed
+iting the fields within a limit is working fine)
+14. Step 14: aft
+er photo upload analysis step added
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
