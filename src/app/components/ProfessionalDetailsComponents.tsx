@@ -42,16 +42,6 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
 
           {/* Details Grid */}
           <div className="space-y-3">
-            {/* Designation */}
-            <div className="flex justify-between items-start">
-              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
-                Designation
-              </p>
-              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
-                {userData.designation}
-              </p>
-            </div>
-
             {/* Employer Name */}
             <div className="flex justify-between items-start">
               <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
@@ -62,14 +52,13 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
               </p>
             </div>
 
-            {/* Industry — Auto-filled */}
+            {/* Designation */}
             <div className="flex justify-between items-start">
-              <div className="flex-1 flex flex-col gap-[2px]">
-                <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Industry</p>
-                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
-              </div>
+              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
+                Designation
+              </p>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
-                {userData.industry}
+                {userData.designation}
               </p>
             </div>
 
@@ -83,11 +72,22 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
               </p>
             </div>
 
+            {/* Industry — Auto-filled */}
+            <div className="flex justify-between items-start">
+              <div className="flex-1 flex flex-col gap-[2px]">
+                <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Industry</p>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#1A7F3C] bg-[#E6F4EA] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+              </div>
+              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
+                {userData.industry}
+              </p>
+            </div>
+
             {/* Job Duties — Auto-filled */}
             <div className="flex justify-between items-start">
               <div className="flex-1 flex flex-col gap-[2px]">
                 <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Job Duties</p>
-                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#1A7F3C] bg-[#E6F4EA] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1 whitespace-pre-wrap">
                 {userData.jobDuties}
@@ -98,7 +98,7 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
             <div className="flex justify-between items-start">
               <div className="flex-1 flex flex-col gap-[2px]">
                 <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Hazardous Environment</p>
-                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#1A7F3C] bg-[#E6F4EA] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
                 {userData.hazardousEnvironment}
