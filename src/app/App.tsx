@@ -6546,7 +6546,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     const stepPrompts: Record<number, string> = {
       1: `You are an intelligent form assistant. Extract the user's age and gender from their free-form message. The user may write naturally without any specific format or punctuation. Examples: "I am 35 years old and I am male", "28 female", "thirty five, male", "35 & Male". Return JSON: {"age": <number or null>, "gender": <"Male"|"Female"|null>}.`,
 
-      18: `You are an intelligent form assistant. Extract professional details from the user's free-form message. The user may write naturally, with or without commas or labels. Examples: "I work at TCS as a Software Engineer", "I'm a salaried employee at Infosys working as a manager", "Self employed doctor at Apollo". Infer occupation type (Salaried/Self-Employed/Business), industry, job duties, and whether the job involves hazardous environments. Return JSON: {"employerName": "...", "designation": "...", "occupation": "Salaried"|"Self-Employed"|"Business", "industry": "...", "jobDuties": "...", "hazardousEnvironment": "Yes"|"No"}. Use null for fields that cannot be determined.`,
+      18: `You are an intelligent form assistant. Extract professional details from the user's free-form message. The user may write naturally, with or without commas or labels. Examples: "I work at TCS as a Software Engineer", "I'm a salaried employee at Infosys working as a manager", "Self employed doctor at Apollo". Rules: (1) Infer occupation type (Salaried/Self-Employed/Business) from context. (2) Always infer industry from the designation or company name — e.g. "UX Designer" → "Technology", "Doctor at Apollo" → "Healthcare", "CA" → "Finance". (3) Always infer jobDuties from the designation — e.g. "UX Designer" → "Designing user interfaces and experiences", "Software Engineer" → "Software development and engineering". (4) hazardousEnvironment is "Yes" only for jobs like mining, construction, military, firefighting — default to "No". (5) Only use null for employerName or designation if truly absent. Return JSON: {"employerName": "...", "designation": "...", "occupation": "Salaried"|"Self-Employed"|"Business", "industry": "...", "jobDuties": "...", "hazardousEnvironment": "Yes"|"No"}.`,
 
       22: `You are an intelligent form assistant. Extract a date of birth from the user's free-form message. Accept any format and convert to DD/MM/YYYY. Examples: "15th March 1960", "15/03/1960", "March 15 1960", "DOB is 15-03-1960". Return JSON: {"dateOfBirth": "DD/MM/YYYY" or null}.`,
 
@@ -9523,6 +9523,7 @@ Rules:
           : msg
       )
     );
+    triggerSaveToast();
   };
 
   const handleProfessionalDetailsConfirm = () => {
@@ -10666,7 +10667,18 @@ Rules:
                         className="px-5 w-full"
                       >
                         {message.isBusinessCardUpload ? (
-                          <ReviewProfessionalDetailsCardImport onConfirm={handleBusinessCardProfessionalDetailsConfirm} />
+                          <ReviewProfessionalDetailsCard
+                            userData={{
+                              designation: message.professionalData.designation || '',
+                              employerName: message.professionalData.employerName || '',
+                              industry: message.professionalData.industry,
+                              occupation: message.professionalData.occupation || '',
+                              jobDuties: message.professionalData.jobDuties,
+                              hazardousEnvironment: message.professionalData.hazardousEnvironment,
+                            }}
+                            onEdit={handleBusinessCardProfessionalDetailsEdit}
+                            onConfirm={handleBusinessCardProfessionalDetailsConfirm}
+                          />
                         ) : (
                           <ReviewProfessionalDetailsCard
                             userData={{

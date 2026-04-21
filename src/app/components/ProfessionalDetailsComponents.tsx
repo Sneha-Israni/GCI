@@ -62,11 +62,12 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
               </p>
             </div>
 
-            {/* Industry */}
+            {/* Industry — Auto-filled */}
             <div className="flex justify-between items-start">
-              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
-                Industry
-              </p>
+              <div className="flex-1 flex flex-col gap-[2px]">
+                <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Industry</p>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+              </div>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
                 {userData.industry}
               </p>
@@ -82,21 +83,23 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
               </p>
             </div>
 
-            {/* Job Duties */}
+            {/* Job Duties — Auto-filled */}
             <div className="flex justify-between items-start">
-              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
-                Job Duties
-              </p>
+              <div className="flex-1 flex flex-col gap-[2px]">
+                <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Job Duties</p>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+              </div>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1 whitespace-pre-wrap">
                 {userData.jobDuties}
               </p>
             </div>
 
-            {/* Hazardous Environment */}
+            {/* Hazardous Environment — Auto-filled */}
             <div className="flex justify-between items-start">
-              <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
-                Hazardous Environment
-              </p>
+              <div className="flex-1 flex flex-col gap-[2px]">
+                <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666]">Hazardous Environment</p>
+                <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[#c21b17] bg-[#fff0f0] px-[6px] py-[1px] rounded-full w-fit">Auto-filled</span>
+              </div>
               <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
                 {userData.hazardousEnvironment}
               </p>

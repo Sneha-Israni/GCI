@@ -13,6 +13,7 @@ This is an onboarding flow application. [Which helps in customer onboarding for 
 ## Core Features That MUST Always Work
 1. User's can login through mobile otp
 2. Language selection
+3. Step 1: Age and Gender
  
 
 ## Important Files and What They Do
@@ -26,11 +27,24 @@ This is an onboarding flow application. [Which helps in customer onboarding for 
 ## Current Status
 Working: 
 1.Flow end-to-end
+2. Age and Gender open-ended section is working now 
+3. Edit banner functionality with Your Details page and back functionality
+4. Dynamic Cards of the Your Details page
+5. Editing Bottom Sheet
+6. Chevron expand and collapse 
+7. Step 3 is fixed
+8. Document Upload Cards (it was showing 3, changed to 2)
+9. Document Upload field extraction
 Broken: 
-1. For open-ended questions, the system is not understanding the user values if comma is not added. 
+1. For open-ended questions, the system is not understanding the user values if comma is not added
 
 ## What I Am Changing Today
-1. Fixing the user-response type if comma is added, or any type of user response.
+1. Fixing the user-response type if comma is added, or any type of user response. (Changed for age and gender)
+2. Fixing for step 3 i.e. target amount and time period (Open ai api key issue)
+3. Edit Banner functionality
+4. Editing of the fields
+5. Chevron expand and collapse 
+6. Document Upload Cards (it was showing 3, changed to 2)
 ## What Must NOT Change
 Rest of the flow 
 
