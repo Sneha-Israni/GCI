@@ -14,9 +14,11 @@ interface ReviewProfessionalDetailsProps {
   };
   onEdit: () => void;
   onConfirm: () => void;
+  highlightEmpty?: boolean;
 }
 
-export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: ReviewProfessionalDetailsProps) {
+export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm, highlightEmpty = false }: ReviewProfessionalDetailsProps) {
+  const emptyRowClass = 'border border-[#c21b17] rounded-[8px] px-2 py-1 -mx-2';
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -43,32 +45,32 @@ export function ReviewProfessionalDetailsCard({ userData, onEdit, onConfirm }: R
           {/* Details Grid */}
           <div className="space-y-3">
             {/* Employer Name */}
-            <div className="flex justify-between items-start">
+            <div className={`flex justify-between items-start ${highlightEmpty && !userData.employerName ? emptyRowClass : ''}`}>
               <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
                 Employer Name
               </p>
-              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
-                {userData.employerName}
+              <p className={`font-['Inter:Medium',sans-serif] text-[13px] text-right flex-1 ${highlightEmpty && !userData.employerName ? 'text-[#c21b17] italic' : 'text-[#263238]'}`}>
+                {userData.employerName || (highlightEmpty ? 'Not detected' : '')}
               </p>
             </div>
 
             {/* Designation */}
-            <div className="flex justify-between items-start">
+            <div className={`flex justify-between items-start ${highlightEmpty && !userData.designation ? emptyRowClass : ''}`}>
               <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
                 Designation
               </p>
-              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
-                {userData.designation}
+              <p className={`font-['Inter:Medium',sans-serif] text-[13px] text-right flex-1 ${highlightEmpty && !userData.designation ? 'text-[#c21b17] italic' : 'text-[#263238]'}`}>
+                {userData.designation || (highlightEmpty ? 'Not detected' : '')}
               </p>
             </div>
 
             {/* Occupation */}
-            <div className="flex justify-between items-start">
+            <div className={`flex justify-between items-start ${highlightEmpty && !userData.occupation ? emptyRowClass : ''}`}>
               <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#666] flex-1">
                 Occupation
               </p>
-              <p className="font-['Inter:Medium',sans-serif] text-[13px] text-[#263238] text-right flex-1">
-                {userData.occupation}
+              <p className={`font-['Inter:Medium',sans-serif] text-[13px] text-right flex-1 ${highlightEmpty && !userData.occupation ? 'text-[#c21b17] italic' : 'text-[#263238]'}`}>
+                {userData.occupation || (highlightEmpty ? 'Not detected' : '')}
               </p>
             </div>
 

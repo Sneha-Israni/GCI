@@ -2299,6 +2299,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   const [hasExtractedBusinessCard, setHasExtractedBusinessCard] = useState(false);
   const [showProfessionalDetailsContinue, setShowProfessionalDetailsContinue] = useState(false);
   const [tempProfessionalData, setTempProfessionalData] = useState<{
+    employerName: string;
+    designation: string;
+    occupation: string;
     industry: string;
     jobDuties: string;
     hazardousEnvironment: string;
@@ -11099,6 +11102,7 @@ Rules:
                               jobDuties: message.professionalData.jobDuties,
                               hazardousEnvironment: message.professionalData.hazardousEnvironment,
                             }}
+                            highlightEmpty={true}
                             onEdit={handleBusinessCardProfessionalDetailsEdit}
                             onConfirm={handleBusinessCardProfessionalDetailsConfirm}
                           />
