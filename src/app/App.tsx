@@ -9740,32 +9740,161 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
   };
 
   const handleBusinessCardUpload = async (docType: string, file: File) => {
-    // Show extraction animation
+    // Store the file and show extraction animation
+    setUserData((prev) => ({ ...prev, businessCard: file }));
     setIsProcessingBusinessCard(true);
 
-    // Mock data extracted from business card
-    const mockProfessionalData = {
-      industry: 'Information Technology',
-      jobDuties: 'Software development\nCode reviews and testing\nTeam collaboration and project planning',
-      hazardousEnvironment: 'No'
-    };
+    try {
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      if (!apiKey) {
+        console.error('❌ VITE_OPENAI_API_KEY is not set');
+        setIsProcessingBusinessCard(false);
+        return;
+      }
 
-    setUserData((prev) => ({
-      ...prev,
-      businessCard: file,
-      industry: mockProfessionalData.industry,
-      jobDuties: mockProfessionalData.jobDuties,
-      hazardousEnvironment: mockProfessionalData.hazardousEnvironment,
-    }));
+      // Convert business card image to base64 — reusing existing pattern
+      const toBase64 = (f: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(f);
+        });
 
-    // Store professional data temporarily (extraction happens in background)
-    setTempProfessionalData(mockProfessionalData);
+      const base64 = await toBase64(file);
+      const mimeType = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
 
-    // Hide extraction animation after simulated processing
-    setTimeout(() => {
+      const businessCardPrompt = `This is an image of a professional business card.
+Extract the following details accurately.
+Return ONLY a valid JSON object with no explanation, no markdown, no backticks:
+{
+  "employer_name": string,
+  "designation": string,
+  "occupation": string,
+  "person_name": string
+}
+
+Rules:
+- employer_name: the company or organisation name on the card
+- designation: the job title on the card
+- occupation: infer from context, return ONLY one of these exact values: Salaried, Self-Employed, Business Owner
+  → Has a company name not their own = Salaried
+  → Freelancer/Consultant/own name = Self-Employed
+  → Director/Founder/Owner/Partner = Business Owner
+- person_name: individual's name if visible
+- If any field is not clearly visible return empty string — never guess`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: businessCardPrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64}`,
+                    detail: 'high',
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 300,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+        console.log('💼 Business card extraction raw response:', rawContent);
+
+        let extracted: Record<string, string> = {};
+        try {
+          extracted = JSON.parse(rawContent);
+        } catch (parseErr) {
+          console.error('❌ Failed to parse business card JSON:', parseErr, rawContent);
+        }
+
+        const extractedEmployer = extracted.employer_name || '';
+        const extractedDesignation = extracted.designation || '';
+        const extractedOccupation = extracted.occupation || '';
+
+        // Call the existing parseWithOpenAI step-18 function to infer industry, jobDuties, hazardousEnvironment
+        // — the same auto-population the manual text path uses. No second Vision call.
+        const inferText = `${extractedDesignation} at ${extractedEmployer}, ${extractedOccupation}`;
+        const inferred = await parseWithOpenAI(inferText, 18);
+
+        const professionalData = {
+          employerName: extractedEmployer,
+          designation: extractedDesignation,
+          occupation: extractedOccupation,
+          industry: inferred?.industry || '',
+          jobDuties: inferred?.jobDuties || '',
+          hazardousEnvironment: inferred?.hazardousEnvironment || 'No',
+        };
+
+        setUserData((prev) => ({ ...prev, ...professionalData }));
+        setTempProfessionalData(professionalData);
+
+        // If any key field is empty, show a note in chat for the user to complete manually
+        if (!extractedEmployer || !extractedDesignation || !extractedOccupation) {
+          setTimeout(() => {
+            const noteMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              content: 'Some details could not be read. Please tap Edit to complete.',
+              sender: 'bot',
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, noteMessage]);
+          }, 400);
+        }
+
+        console.log('✅ Business card professional details extracted:', professionalData);
+      } else {
+        const errText = await response.text();
+        console.error(`❌ OpenAI Vision error ${response.status}:`, errText);
+
+        // Fallback: empty fields, let user fill in manually
+        const emptyData = { employerName: '', designation: '', occupation: '', industry: '', jobDuties: '', hazardousEnvironment: 'No' };
+        setTempProfessionalData(emptyData);
+        setTimeout(() => {
+          const noteMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            content: 'Could not read the card clearly. Please fill in the details manually.',
+            sender: 'bot',
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, noteMessage]);
+        }, 400);
+      }
+    } catch (err) {
+      console.error('❌ Business card extraction error:', err);
+      const emptyData = { employerName: '', designation: '', occupation: '', industry: '', jobDuties: '', hazardousEnvironment: 'No' };
+      setTempProfessionalData(emptyData);
+      setTimeout(() => {
+        const noteMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          content: 'Could not read the card clearly. Please fill in the details manually.',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, noteMessage]);
+      }, 400);
+    } finally {
       setIsProcessingBusinessCard(false);
-    }, 1800);
-    
+    }
+
     // Don't show any message yet - let DocumentUpload's Continue button handle it
   };
 
