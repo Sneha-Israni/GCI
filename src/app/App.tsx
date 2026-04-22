@@ -476,6 +476,35 @@ function YesNoButtons({ onSelect }: { onSelect: (option: string) => void }) {
   );
 }
 
+// Substance Follow-Up Option Buttons — same style as YesNoButtons
+function SubstanceOptionButtons({ options, onSelect }: { options: string[]; onSelect: (option: string) => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.4 }}
+      className="px-5 w-full flex flex-col gap-[10px]"
+    >
+      {options.map((option, index) => (
+        <motion.button
+          key={option}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 + index * 0.1, duration: 0.3 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onSelect(option)}
+          className="bg-[#fff7f7] content-stretch flex gap-[10px] items-center justify-start p-[12px] relative rounded-[14px] w-full"
+        >
+          <div aria-hidden="true" className="absolute border border-[#c21b17] border-solid inset-0 pointer-events-none rounded-[14px]" />
+          <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic text-[#c21b17] text-[16px] text-left">
+            {option}
+          </p>
+        </motion.button>
+      ))}
+    </motion.div>
+  );
+}
+
 // Alive/Deceased Selection Buttons
 function VitalStatusButtons({ onSelect }: { onSelect: (option: string) => void }) {
   const options = ['Alive', 'Deceased'];
@@ -2324,8 +2353,11 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
 
   // Substance consumption state
   const [selectedSubstances, setSelectedSubstances] = useState<string[]>([]);
-
-  // Asset declaration state
+  // Substance follow-up sub-step state (Phase 1: Tobacco only)
+  const [substanceFollowUpQueue, setSubstanceFollowUpQueue] = useState<string[]>([]);
+  const [substanceFollowUpStage, setSubstanceFollowUpStage] = useState<string>('');
+  // Temp storage for tobacco follow-up answers before final save
+  const [tempSubstanceDetails, setTempSubstanceDetails] = useState<Record<string, any>>({});
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
 
   // Bank details state
@@ -8301,6 +8333,32 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
         }, 1000);
       }
     }
+    // Step 32.1: Substance follow-up questions (open-ended quantity answers)
+    else if (currentStep === 32.1) {
+      setIsThinking(false);
+
+      if (substanceFollowUpStage === 'tobacco_quantity') {
+        // Save tobacco quantity answer
+        const quantity = messageText.trim();
+        const updated = {
+          ...tempSubstanceDetails,
+          tobacco: { ...tempSubstanceDetails.tobacco, quantity },
+        };
+        setTempSubstanceDetails(updated);
+        setExampleText('');
+
+        // Tobacco done — check queue for next substance
+        const nextQueue = [...substanceFollowUpQueue];
+        const next = nextQueue.shift();
+        setSubstanceFollowUpQueue(nextQueue);
+
+        if (!next) {
+          // No more substances — move to assets
+          completeSubstancesAndMoveToAssets(updated);
+        }
+        // Alcohol and Narcotics will be handled in Phase 2 & 3
+      }
+    }
     // Step 34.2: Manual bank details entry
     else if (currentStep === 34.2) {
       const parsedBankDetails = await parseWithOpenAI(messageText, 34);
@@ -10252,22 +10310,13 @@ Rules:
     });
   };
 
-  const handleSubstanceConsumptionConfirmWithSelection = (selection: string[]) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: selection.join(', '),
-      sender: 'user',
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
+  // Moves to Assets step — always called the same way regardless of path
+  const completeSubstancesAndMoveToAssets = (substanceDetails: Record<string, any>) => {
+    // Save final structured substance data
     setUserData((prev) => ({
       ...prev,
-      substanceConsumption: selection,
+      substanceConsumption: substanceDetails,
     }));
-
-    // Clear selection after saving to userData
-    setSelectedSubstances([]);
 
     // Move to asset declaration step
     setCurrentStep(33); // Step 25 in UI (Assets)
@@ -10287,8 +10336,108 @@ Rules:
     }, 1000);
   };
 
+  const handleSubstanceConsumptionConfirmWithSelection = (selection: string[]) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: selection.join(', '),
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Clear selection after saving
+    setSelectedSubstances([]);
+
+    // "I don't consume" path — unchanged behaviour
+    if (selection.includes("I don't consume any substances") || selection.length === 0) {
+      setUserData((prev) => ({ ...prev, substanceConsumption: { tobacco: { consumes: false }, alcohol: { consumes: false }, narcotics: { consumes: false } } }));
+      setCurrentStep(33);
+      const autoSuggestedAssets = getAutoSuggestedAssets(userData.annualIncome);
+      setSelectedAssets(autoSuggestedAssets);
+      setTimeout(() => {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have.",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }, 1000);
+      return;
+    }
+
+    // One or more substances selected — start follow-up queue
+    // Build initial substance details with consumes flags
+    const initialDetails: Record<string, any> = {
+      tobacco: { consumes: selection.includes('Tobacco') },
+      alcohol: { consumes: selection.includes('Alcohol') },
+      narcotics: { consumes: selection.includes('Narcotics') },
+    };
+    setTempSubstanceDetails(initialDetails);
+
+    // Build queue in order: Tobacco → Alcohol → Narcotics (Phase 1: Tobacco only)
+    const queue: string[] = [];
+    if (selection.includes('Tobacco')) queue.push('Tobacco');
+    // Alcohol and Narcotics will be added in Phase 2 & 3
+
+    if (queue.length === 0) {
+      // None of the queued substances — go straight to assets
+      completeSubstancesAndMoveToAssets(initialDetails);
+      return;
+    }
+
+    setSubstanceFollowUpQueue(queue.slice(1)); // remaining after first
+    const first = queue[0];
+    setCurrentStep(32.1);
+
+    // Ask first follow-up — Tobacco form question
+    if (first === 'Tobacco') {
+      setSubstanceFollowUpStage('tobacco_form');
+      setTimeout(() => {
+        setIsThinking(false);
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'In what form do you consume tobacco?',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }, 1000);
+    }
+  };
+
   const handleSubstanceConsumptionConfirm = () => {
     handleSubstanceConsumptionConfirmWithSelection(selectedSubstances);
+  };
+
+  // Phase 1: Tobacco form badge tap handler
+  const handleTobaccoFormSelect = (form: string) => {
+    // Post user message for the selection
+    const userMsg: Message = { id: Date.now().toString(), content: form, sender: 'user', timestamp: new Date() };
+    setMessages((prev) => [...prev, userMsg]);
+
+    // Save form to temp details
+    setTempSubstanceDetails((prev) => ({ ...prev, tobacco: { ...prev.tobacco, form } }));
+
+    // Ask quantity question based on form
+    const quantityQuestion =
+      form === 'Cigarettes' ? 'How many cigarettes do you smoke in a day?' :
+      form === 'Bidi' ? 'How many bidis do you smoke in a day?' :
+      form === 'Both (Smoking + Chewing)' ? 'How many times a day do you consume tobacco in total?' :
+      'How many times a day do you consume tobacco?'; // Raw Tobacco or Chewing Tobacco
+
+    const exampleAnswer =
+      form === 'Cigarettes' ? '10 per day' :
+      form === 'Bidi' ? '5 per day' :
+      form === 'Both (Smoking + Chewing)' ? '15 times a day' :
+      '3 times a day';
+
+    setSubstanceFollowUpStage('tobacco_quantity');
+    setTimeout(() => {
+      const botMsg: Message = { id: (Date.now() + 1).toString(), content: quantityQuestion, sender: 'bot', timestamp: new Date() };
+      setMessages((prev) => [...prev, botMsg]);
+      setExampleText(exampleAnswer);
+    }, 600);
   };
 
   // Helper function to auto-suggest assets based on annual income
@@ -11365,6 +11514,14 @@ Rules:
                   selectedSubstances={selectedSubstances}
                   onToggle={handleSubstanceToggle}
                   onConfirm={handleSubstanceConsumptionConfirm}
+                />
+              )}
+
+              {/* Tobacco follow-up: form options */}
+              {currentStep === 32.1 && substanceFollowUpStage === 'tobacco_form' && messages[messages.length - 1]?.content === 'In what form do you consume tobacco?' && (
+                <SubstanceOptionButtons
+                  options={['Raw Tobacco', 'Cigarettes', 'Bidi', 'Chewing Tobacco', 'Both (Smoking + Chewing)']}
+                  onSelect={handleTobaccoFormSelect}
                 />
               )}
               

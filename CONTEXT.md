@@ -53,6 +53,7 @@ r a category
 19. Edit details banner removal from the last SCR step and change of the stepper ux copy. 
 20. All Cards in the Your Details page 
 21. Editing of the Nominee Details Card from the Your Details page 
+22. Business Card upload method --> editing fields from the professional details card 
 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
