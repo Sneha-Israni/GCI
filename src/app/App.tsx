@@ -2353,9 +2353,12 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
 
   // Substance consumption state
   const [selectedSubstances, setSelectedSubstances] = useState<string[]>([]);
-  // Substance follow-up sub-step state (Phase 1: Tobacco only)
+  // Substance follow-up sub-step state
   const [substanceFollowUpQueue, setSubstanceFollowUpQueue] = useState<string[]>([]);
   const [substanceFollowUpStage, setSubstanceFollowUpStage] = useState<string>('');
+  // Refs mirror the above — used inside handleSendMessage where React state is stale within the same render
+  const substanceFollowUpStageRef = useRef<string>('');
+  const substanceFollowUpQueueRef = useRef<string[]>([]);
   // Temp storage for tobacco follow-up answers before final save
   const [tempSubstanceDetails, setTempSubstanceDetails] = useState<Record<string, any>>({});
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
@@ -6862,7 +6865,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       }, 1000);
     }
     // After goal amount is provided (step 3), ask about policy type
-    else if (currentStep === 3 || (messages.length >= 5 && messages[messages.length - 1].sender === 'bot' &&
+    else if (currentStep === 3 || (currentStep === 3 && messages.length >= 5 && messages[messages.length - 1].sender === 'bot' &&
              (messages[messages.length - 1].content.includes('much') ||
               messages[messages.length - 1].content.includes('target') ||
               messages[messages.length - 1].content.includes('goal') ||
@@ -8337,26 +8340,26 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
     else if (currentStep === 32.1) {
       setIsThinking(false);
 
-      if (substanceFollowUpStage === 'tobacco_quantity') {
-        // Save tobacco quantity answer
+      if (substanceFollowUpStageRef.current === 'tobacco_quantity') {
         const quantity = messageText.trim();
-        const updated = {
-          ...tempSubstanceDetails,
-          tobacco: { ...tempSubstanceDetails.tobacco, quantity },
-        };
+        const updated = { ...tempSubstanceDetails, tobacco: { ...tempSubstanceDetails.tobacco, quantity } };
         setTempSubstanceDetails(updated);
         setExampleText('');
+        advanceSubstanceQueue(updated);
 
-        // Tobacco done — check queue for next substance
-        const nextQueue = [...substanceFollowUpQueue];
-        const next = nextQueue.shift();
-        setSubstanceFollowUpQueue(nextQueue);
+      } else if (substanceFollowUpStageRef.current === 'alcohol_frequency') {
+        const frequency = messageText.trim();
+        const updated = { ...tempSubstanceDetails, alcohol: { ...tempSubstanceDetails.alcohol, frequency } };
+        setTempSubstanceDetails(updated);
+        setExampleText('');
+        advanceSubstanceQueue(updated);
 
-        if (!next) {
-          // No more substances — move to assets
-          completeSubstancesAndMoveToAssets(updated);
-        }
-        // Alcohol and Narcotics will be handled in Phase 2 & 3
+      } else if (substanceFollowUpStageRef.current === 'narcotics_frequency') {
+        const frequency = messageText.trim();
+        const updated = { ...tempSubstanceDetails, narcotics: { ...tempSubstanceDetails.narcotics, frequency } };
+        setTempSubstanceDetails(updated);
+        setExampleText('');
+        advanceSubstanceQueue(updated);
       }
     }
     // Step 34.2: Manual bank details entry
@@ -10375,10 +10378,11 @@ Rules:
     };
     setTempSubstanceDetails(initialDetails);
 
-    // Build queue in order: Tobacco → Alcohol → Narcotics (Phase 1: Tobacco only)
+    // Build queue in order: Tobacco → Alcohol → Narcotics
     const queue: string[] = [];
     if (selection.includes('Tobacco')) queue.push('Tobacco');
-    // Alcohol and Narcotics will be added in Phase 2 & 3
+    if (selection.includes('Alcohol')) queue.push('Alcohol');
+    if (selection.includes('Narcotics')) queue.push('Narcotics');
 
     if (queue.length === 0) {
       // None of the queued substances — go straight to assets
@@ -10387,17 +10391,48 @@ Rules:
     }
 
     setSubstanceFollowUpQueue(queue.slice(1)); // remaining after first
+    substanceFollowUpQueueRef.current = queue.slice(1);
     const first = queue[0];
     setCurrentStep(32.1);
+    startSubstanceFollowUp(first);
+  };
 
-    // Ask first follow-up — Tobacco form question
-    if (first === 'Tobacco') {
+  // Starts the first follow-up question for a given substance
+  const startSubstanceFollowUp = (substance: string) => {
+    if (substance === 'Tobacco') {
       setSubstanceFollowUpStage('tobacco_form');
+      substanceFollowUpStageRef.current = 'tobacco_form';
       setTimeout(() => {
         setIsThinking(false);
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: 'In what form do you consume tobacco?',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }, 1000);
+    } else if (substance === 'Alcohol') {
+      setSubstanceFollowUpStage('alcohol_type');
+      substanceFollowUpStageRef.current = 'alcohol_type';
+      setTimeout(() => {
+        setIsThinking(false);
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'What type of alcohol do you consume?',
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }, 1000);
+    } else if (substance === 'Narcotics') {
+      setSubstanceFollowUpStage('narcotics_type');
+      substanceFollowUpStageRef.current = 'narcotics_type';
+      setTimeout(() => {
+        setIsThinking(false);
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'What type of substance do you consume?',
           sender: 'bot',
           timestamp: new Date(),
         };
@@ -10410,7 +10445,20 @@ Rules:
     handleSubstanceConsumptionConfirmWithSelection(selectedSubstances);
   };
 
-  // Phase 1: Tobacco form badge tap handler
+  // Advances to next substance in queue or completes if queue empty
+  const advanceSubstanceQueue = (currentDetails: Record<string, any>) => {
+    const nextQueue = [...substanceFollowUpQueueRef.current];
+    const next = nextQueue.shift();
+    setSubstanceFollowUpQueue(nextQueue);
+    substanceFollowUpQueueRef.current = nextQueue;
+    if (!next) {
+      completeSubstancesAndMoveToAssets(currentDetails);
+    } else {
+      startSubstanceFollowUp(next);
+    }
+  };
+
+  // Tobacco form badge tap handler
   const handleTobaccoFormSelect = (form: string) => {
     // Post user message for the selection
     const userMsg: Message = { id: Date.now().toString(), content: form, sender: 'user', timestamp: new Date() };
@@ -10433,10 +10481,39 @@ Rules:
       '3 times a day';
 
     setSubstanceFollowUpStage('tobacco_quantity');
+    substanceFollowUpStageRef.current = 'tobacco_quantity';
     setTimeout(() => {
       const botMsg: Message = { id: (Date.now() + 1).toString(), content: quantityQuestion, sender: 'bot', timestamp: new Date() };
       setMessages((prev) => [...prev, botMsg]);
       setExampleText(exampleAnswer);
+    }, 600);
+  };
+
+  // Alcohol type badge tap handler
+  const handleAlcoholTypeSelect = (type: string) => {
+    const userMsg: Message = { id: Date.now().toString(), content: type, sender: 'user', timestamp: new Date() };
+    setMessages((prev) => [...prev, userMsg]);
+    setTempSubstanceDetails((prev) => ({ ...prev, alcohol: { ...prev.alcohol, type } }));
+    setSubstanceFollowUpStage('alcohol_frequency');
+    substanceFollowUpStageRef.current = 'alcohol_frequency';
+    setTimeout(() => {
+      const botMsg: Message = { id: (Date.now() + 1).toString(), content: 'How often do you consume alcohol and roughly how much?', sender: 'bot', timestamp: new Date() };
+      setMessages((prev) => [...prev, botMsg]);
+      setExampleText('2-3 times a week, 2 drinks each time');
+    }, 600);
+  };
+
+  // Narcotics type badge tap handler
+  const handleNarcoticsTypeSelect = (type: string) => {
+    const userMsg: Message = { id: Date.now().toString(), content: type, sender: 'user', timestamp: new Date() };
+    setMessages((prev) => [...prev, userMsg]);
+    setTempSubstanceDetails((prev) => ({ ...prev, narcotics: { ...prev.narcotics, type } }));
+    setSubstanceFollowUpStage('narcotics_frequency');
+    substanceFollowUpStageRef.current = 'narcotics_frequency';
+    setTimeout(() => {
+      const botMsg: Message = { id: (Date.now() + 1).toString(), content: 'How frequently do you consume this?', sender: 'bot', timestamp: new Date() };
+      setMessages((prev) => [...prev, botMsg]);
+      setExampleText('Occasionally, once or twice a month');
     }, 600);
   };
 
@@ -11522,6 +11599,22 @@ Rules:
                 <SubstanceOptionButtons
                   options={['Raw Tobacco', 'Cigarettes', 'Bidi', 'Chewing Tobacco', 'Both (Smoking + Chewing)']}
                   onSelect={handleTobaccoFormSelect}
+                />
+              )}
+
+              {/* Alcohol follow-up: type options */}
+              {currentStep === 32.1 && substanceFollowUpStage === 'alcohol_type' && messages[messages.length - 1]?.content === 'What type of alcohol do you consume?' && (
+                <SubstanceOptionButtons
+                  options={['Beer/Wine', 'Spirits/Whisky', 'Both']}
+                  onSelect={handleAlcoholTypeSelect}
+                />
+              )}
+
+              {/* Narcotics follow-up: type options */}
+              {currentStep === 32.1 && substanceFollowUpStage === 'narcotics_type' && messages[messages.length - 1]?.content === 'What type of substance do you consume?' && (
+                <SubstanceOptionButtons
+                  options={['Cannabis', 'Prescription Medication (non-prescribed)', 'Other']}
+                  onSelect={handleNarcoticsTypeSelect}
                 />
               )}
               
