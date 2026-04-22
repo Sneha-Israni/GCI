@@ -1223,8 +1223,7 @@ function HealthConditionsSelector({
       {conditions.map((condition, index) => {
         const isSelected = selectedConditions.includes(condition);
         const isDisabled = !isSelected && (
-          (isNoneSelected && condition !== "I don't have any disorders") ||
-          (!isNoneSelected && condition === "I don't have any disorders" && selectedConditions.length > 0)
+          (isNoneSelected && condition !== "I don't have any disorders")
         );
         const hasInfo = condition !== "I don't have any disorders";
 
@@ -2359,6 +2358,9 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   // Refs mirror the above — used inside handleSendMessage where React state is stale within the same render
   const substanceFollowUpStageRef = useRef<string>('');
   const substanceFollowUpQueueRef = useRef<string[]>([]);
+  // Refs for health condition follow-up — same stale closure fix as substances
+  const selectedHealthConditionsRef = useRef<string[]>([]);
+  const currentConditionBeingDetailedRef = useRef(0);
   // Temp storage for tobacco follow-up answers before final save
   const [tempSubstanceDetails, setTempSubstanceDetails] = useState<Record<string, any>>({});
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
@@ -5236,6 +5238,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           weightChange: 'No',
         }));
         setSelectedHealthConditions([]);
+        selectedHealthConditionsRef.current = [];
         setShowHeightWeightReview(false);
         setExampleText('');
         break;
@@ -5317,6 +5320,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           healthConditions: ["I don't have any disorders"],
         }));
         setSelectedHealthConditions([]);
+        selectedHealthConditionsRef.current = [];
         setSelectedSubstances([]);
         setShowHeightWeightReview(false);
         setExampleText('');
@@ -5412,6 +5416,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           substanceConsumption: ["I don't consume any substances"],
         }));
         setSelectedHealthConditions([]);
+        selectedHealthConditionsRef.current = [];
         setSelectedSubstances([]);
         // Auto-suggest assets based on annual income
         const autoAssets = getAutoSuggestedAssets(userData.annualIncome);
@@ -5523,6 +5528,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           assets: [],
         }));
         setSelectedHealthConditions([]);
+        selectedHealthConditionsRef.current = [];
         setSelectedSubstances([]);
         setSelectedAssets([]);
         setBankDetailsMethod(null);
@@ -8163,7 +8169,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('Asthma, diagnosed in January 2020');
+          setExampleText(HEALTH_CONDITION_EXAMPLES[selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current]] ?? 'e.g. [Condition], diagnosed in [Month Year]');
         }, 1000);
         return;
       }
@@ -8193,7 +8199,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('Asthma');
+          setExampleText(HEALTH_CONDITION_EXAMPLES[selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current]] ?? 'e.g. [Condition], diagnosed in [Month Year]');
         }, 1000);
         return;
       }
@@ -8206,7 +8212,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
 
       // Store partial details
       const newDetail = {
-        condition: selectedHealthConditions[currentConditionBeingDetailed],
+        condition: selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current],
         exactName: parsedDetails.exactName,
         diagnosedDate: parsedDetails.diagnosedDate,
         treatment: '',
@@ -8300,16 +8306,17 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       });
 
       // Check if there are more conditions to ask about
-      const nextIndex = currentConditionBeingDetailed + 1;
-      if (nextIndex < selectedHealthConditions.length) {
+      const nextIndex = currentConditionBeingDetailedRef.current + 1;
+      if (nextIndex < selectedHealthConditionsRef.current.length) {
         setCurrentConditionBeingDetailed(nextIndex);
+        currentConditionBeingDetailedRef.current = nextIndex;
         setCurrentStep(31.1);
         
         setTimeout(() => {
           setIsThinking(false);
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: `Now let's talk about ${selectedHealthConditions[nextIndex]}. Please share the exact name of the illness and when it was diagnosed?`,
+            content: `Now let's talk about ${selectedHealthConditionsRef.current[nextIndex]}. Please share the exact name of the illness and when it was diagnosed?`,
             sender: 'bot',
             timestamp: new Date(),
           };
@@ -10227,8 +10234,19 @@ Rules:
         }, 0);
       }
 
+      selectedHealthConditionsRef.current = newSelection;
       return newSelection;
     });
+  };
+
+  const HEALTH_CONDITION_EXAMPLES: Record<string, string> = {
+    'Respiratory': 'Asthma, diagnosed in March 2018',
+    'Digestive System': 'IBS, diagnosed in June 2020',
+    'Bone Disorder': 'Slip disc, diagnosed in January 2022',
+    'Heart Diseases': 'Hypertension, diagnosed in August 2019',
+    'Diabetes': 'Type 2 Diabetes, diagnosed in May 2021',
+    'Thyroid/Hormonal Disorder': 'Hypothyroidism, diagnosed in February 2020',
+    'Cancer/Tumor': 'Breast cancer, in remission since December 2021',
   };
 
   const handleHealthConditionsConfirmWithSelection = (selection: string[]) => {
@@ -10247,6 +10265,7 @@ Rules:
 
     // Clear selection after saving to userData
     setSelectedHealthConditions([]);
+    selectedHealthConditionsRef.current = [];
 
     // If user has no disorders, move to substance consumption question
     if (selection.includes("I don't have any disorders")) {
@@ -10264,6 +10283,7 @@ Rules:
     } else {
       // Start asking for details of first condition
       setCurrentConditionBeingDetailed(0);
+      currentConditionBeingDetailedRef.current = 0;
       setCurrentStep(31.1); // Sub-step for collecting details
       
       setTimeout(() => {
@@ -10274,7 +10294,7 @@ Rules:
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
-        setExampleText('Asthma, diagnosed in January 2020');
+        setExampleText(HEALTH_CONDITION_EXAMPLES[selection[0]] ?? 'e.g. [Condition], diagnosed in [Month Year]');
       }, 1000);
     }
   };
