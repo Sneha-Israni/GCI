@@ -11613,7 +11613,7 @@ Rules:
               {/* Narcotics follow-up: type options */}
               {currentStep === 32.1 && substanceFollowUpStage === 'narcotics_type' && messages[messages.length - 1]?.content === 'What type of substance do you consume?' && (
                 <SubstanceOptionButtons
-                  options={['Cannabis', 'Prescription Medication (non-prescribed)', 'Other']}
+                  options={['Cannabis', 'Cocaine', 'Opioids', 'Heroin']}
                   onSelect={handleNarcoticsTypeSelect}
                 />
               )}
