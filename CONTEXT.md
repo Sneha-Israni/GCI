@@ -55,6 +55,7 @@ r a category
 21. Editing of the Nominee Details Card from the Your Details page 
 22. Business Card upload method --> editing fields from the professional details card 
 23. Substances step --> Tobacco section functionality added
+24. Health Conditions selected 1st follow-up working fine along with active i don't have any issues button staying active
 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added

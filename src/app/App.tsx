@@ -8231,7 +8231,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, botMessage]);
-        setExampleText('Taking daily inhaler, condition is well-controlled');
+        setExampleText(HEALTH_CONDITION_TREATMENT_EXAMPLES[selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current]] ?? 'e.g. Medication name and dosage, prescribed by doctor since [year]');
       }, 1000);
     }
     // Step 31.2: Collect treatment and current status
@@ -8254,7 +8254,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('Taking daily inhaler, condition is well-controlled');
+          setExampleText(HEALTH_CONDITION_TREATMENT_EXAMPLES[selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current]] ?? 'e.g. Medication name and dosage, prescribed by doctor since [year]');
         }, 1000);
         return;
       }
@@ -8284,7 +8284,7 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, botMessage]);
-          setExampleText('Daily inhaler');
+          setExampleText(HEALTH_CONDITION_TREATMENT_EXAMPLES[selectedHealthConditionsRef.current[currentConditionBeingDetailedRef.current]] ?? 'e.g. Medication name, taken since [year]');
         }, 1000);
         return;
       }
@@ -10247,6 +10247,16 @@ Rules:
     'Diabetes': 'Type 2 Diabetes, diagnosed in May 2021',
     'Thyroid/Hormonal Disorder': 'Hypothyroidism, diagnosed in February 2020',
     'Cancer/Tumor': 'Breast cancer, in remission since December 2021',
+  };
+
+  const HEALTH_CONDITION_TREATMENT_EXAMPLES: Record<string, string> = {
+    'Respiratory': 'Inhaler (Salbutamol), prescribed by doctor, taking since diagnosis',
+    'Digestive System': 'Pantoprazole 40mg daily, prescribed by gastroenterologist since diagnosis',
+    'Bone Disorder': 'Physiotherapy twice a week, pain relief medication as needed',
+    'Heart Diseases': 'Amlodipine 5mg daily for blood pressure, under cardiologist review',
+    'Diabetes': 'Metformin 500mg twice daily, diet controlled, HbA1c monitored',
+    'Thyroid/Hormonal Disorder': 'Thyroxine 50mcg daily, TSH levels checked every 6 months',
+    'Cancer/Tumor': 'Completed chemotherapy, currently on follow-up every 3 months',
   };
 
   const handleHealthConditionsConfirmWithSelection = (selection: string[]) => {
