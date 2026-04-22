@@ -1790,3 +1790,298 @@ export function EditAssetsBottomSheet({
     </>
   );
 }
+// ─── Edit Nominee Details Bottom Sheet ──────────────────────────────────────
+
+type NomineeEntry = {
+  fullName: string;
+  dateOfBirth: string;
+  relationship: string;
+  percentage: number;
+  contactNumber?: string;
+};
+
+export function EditNomineeBottomSheet({
+  nominees,
+  onClose,
+  onSave,
+}: {
+  nominees: NomineeEntry[];
+  onClose: () => void;
+  onSave: (nominees: NomineeEntry[]) => void;
+}) {
+  const emptyNominee: NomineeEntry = { fullName: '', dateOfBirth: '', relationship: '', percentage: 100 };
+
+  // Map stored relationship value → dropdown option
+  const getDropdownValue = (rel: string) => {
+    if (!rel) return '';
+    if (['Father', 'Mother', 'Spouse', 'Child', 'Sibling', 'Other'].includes(rel)) return rel;
+    return 'Other';
+  };
+  // Extract the specify field value from stored relationship
+  const getSpecifyValue = (rel: string) => {
+    if (['Father', 'Mother', 'Spouse', 'Child', 'Sibling', ''].includes(rel)) return '';
+    return rel; // freeform e.g. 'Son', 'Wife'
+  };
+
+  // DOB format helpers: stored as DD/MM/YYYY, input requires YYYY-MM-DD
+  const convertToInputFormat = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return '';
+    return parts[2] + '-' + parts[1] + '-' + parts[0];
+  };
+  const convertToStoredFormat = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return '';
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+  };
+
+  const [formData, setFormData] = useState<NomineeEntry[]>(
+    nominees.length > 0 ? nominees.map(n => ({ ...n, relationship: getDropdownValue(n.relationship) })) : [{ ...emptyNominee }]
+  );
+  const [specifyRelationship, setSpecifyRelationship] = useState<string[]>(
+    nominees.length > 0 ? nominees.map(n => getSpecifyValue(n.relationship)) : ['']
+  );
+  const [errors, setErrors] = useState<Array<Record<string, string>>>(
+    nominees.length > 0 ? nominees.map(() => ({})) : [{}]
+  );
+  const [totalError, setTotalError] = useState('');
+
+  const relationshipOptions = ['Father', 'Mother', 'Spouse', 'Child', 'Sibling', 'Other'];
+
+  const updateField = (index: number, field: keyof NomineeEntry, value: string | number) => {
+    setFormData(prev => prev.map((n, i) => i === index ? { ...n, [field]: value } : n));
+    setErrors(prev => prev.map((e, i) => i === index ? { ...e, [field]: '' } : e));
+  };
+
+  const handleSave = () => {
+    const newErrors = formData.map(n => {
+      const e: Record<string, string> = {};
+      if (!n.fullName.trim()) e.fullName = 'Nominee name is required';
+      if (!n.relationship) e.relationship = 'Please select a relationship';
+      if (!n.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
+      if (!n.percentage || n.percentage < 1 || n.percentage > 100) e.percentage = 'Please enter a valid percentage';
+      return e;
+    });
+    if (newErrors.some(e => Object.keys(e).length > 0)) {
+      setErrors(newErrors);
+      return;
+    }
+    const total = formData.reduce((sum, n) => sum + (Number(n.percentage) || 0), 0);
+    if (total !== 100) {
+      setTotalError(`Total share percentage must equal 100%. Current total: ${total}%`);
+      return;
+    }
+    setTotalError('');
+    // For 'Other', save the specify text if provided; otherwise save the dropdown value
+    const finalNominees = formData.map((n, i) => {
+      let finalRel = n.relationship;
+      if (n.relationship === 'Other' && specifyRelationship[i]) {
+        finalRel = specifyRelationship[i];
+      }
+      return { ...n, relationship: finalRel };
+    });
+    onSave(finalNominees);
+    onClose();
+  };
+
+  const addNominee = () => {
+    setFormData(prev => [...prev, { fullName: '', dateOfBirth: '', relationship: '', percentage: 0 }]);
+    setSpecifyRelationship(prev => [...prev, '']);
+    setErrors(prev => [...prev, {}]);
+    setTotalError('');
+  };
+
+  const removeNominee = (index: number) => {
+    setFormData(prev => prev.filter((_, i) => i !== index));
+    setSpecifyRelationship(prev => prev.filter((_, i) => i !== index));
+    setErrors(prev => prev.filter((_, i) => i !== index));
+    setTotalError('');
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute bg-[rgba(0,0,0,0.4)] h-full left-0 top-0 w-full z-50"
+      />
+      <motion.div
+        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="absolute bg-white bottom-0 content-stretch flex flex-col gap-[10px] items-center left-1/2 max-h-[90vh] overflow-y-auto px-0 py-[10px] rounded-tl-[20px] rounded-tr-[20px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] translate-x-[-50%] w-full z-50"
+      >
+        <div className="bg-[#d1d5dc] h-[5px] rounded-[1.67772e+07px] shrink-0 w-[36px]" />
+        <div className="h-[37px] relative shrink-0 w-full">
+          <div aria-hidden="true" className="absolute border-[#e5e7eb] border-[0px_0px_1px] border-solid inset-0 pointer-events-none" />
+          <div className="flex flex-col items-center size-full">
+            <div className="content-stretch flex flex-col items-center justify-between pb-px pt-0 px-[20px] relative size-full">
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[24px] not-italic relative shrink-0 text-[#101828] text-[16px] text-center text-nowrap tracking-[-0.3125px]">
+                Edit Nominee Details
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip relative shrink-0 w-full">
+          <div className="relative shrink-0 w-full">
+            <div className="overflow-clip rounded-[inherit] size-full">
+              <div className="content-stretch flex flex-col items-start pb-0 pt-[24px] px-[20px] relative w-full">
+                {formData.map((nominee, index) => (
+                  <div key={index} className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full mb-[24px]">
+                    {formData.length > 1 && (
+                      <div className="flex justify-between items-center w-full border-b border-[#e5e7eb] pb-[8px]">
+                        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#263238]">
+                          Nominee {index + 1}
+                        </p>
+                        {index > 0 && (
+                          <button onClick={() => removeNominee(index)} className="text-[#c21b17] text-[13px] font-['Inter:Medium',sans-serif]">
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
+                      <p className="font-['Inter:Regular',sans-serif] font-normal text-[#263238] text-[14px]">Full Name</p>
+                      <div className="relative rounded-[12px] shrink-0 w-full">
+                        <div className="h-[47px] overflow-clip relative rounded-[12px] shrink-0 w-full">
+                          <input
+                            type="text"
+                            value={nominee.fullName}
+                            onChange={e => updateField(index, 'fullName', e.target.value)}
+                            placeholder="Enter full name"
+                            className="absolute h-[19.5px] left-[12px] top-[14px] w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] text-[16px] text-black bg-transparent outline-none placeholder:text-[#999]"
+                          />
+                        </div>
+                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                      </div>
+                      {errors[index]?.fullName && <p className="text-[#c21b17] text-[12px]">{errors[index].fullName}</p>}
+                    </div>
+                    <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
+                      <p className="font-['Inter:Regular',sans-serif] font-normal text-[#263238] text-[14px]">Relationship</p>
+                      <div className="relative rounded-[12px] shrink-0 w-full">
+                        <div className="h-[47px] overflow-clip relative rounded-[12px] shrink-0 w-full">
+                          <select
+                            value={nominee.relationship}
+                            onChange={e => {
+                              updateField(index, 'relationship', e.target.value);
+                              if (e.target.value !== 'Other' && e.target.value !== 'Parent') {
+                                setSpecifyRelationship(prev => prev.map((s, i2) => i2 === index ? '' : s));
+                              }
+                            }}
+                            className="absolute h-[47px] left-[12px] top-0 w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] text-[16px] text-black bg-transparent outline-none appearance-none"
+                          >
+                            <option value="">Select relationship</option>
+                            {relationshipOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                          <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </div>
+                        </div>
+                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                      </div>
+                      {errors[index]?.relationship && <p className="text-[#c21b17] text-[12px]">{errors[index].relationship}</p>}
+                    </div>
+                    {nominee.relationship === 'Other' && (
+                      <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
+                        <p className="font-['Inter:Regular',sans-serif] font-normal text-[#263238] text-[14px]">Please specify relationship</p>
+                        <div className="relative rounded-[12px] shrink-0 w-full">
+                          <div className="h-[47px] overflow-clip relative rounded-[12px] shrink-0 w-full">
+                            <input
+                              type="text"
+                              value={specifyRelationship[index] || ''}
+                              onChange={e => setSpecifyRelationship(prev => prev.map((s, i2) => i2 === index ? e.target.value : s))}
+                              placeholder="e.g. Friend, Guardian"
+                              className="absolute h-[19.5px] left-[12px] top-[14px] w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] text-[16px] text-black bg-transparent outline-none placeholder:text-[#999]"
+                            />
+                          </div>
+                          <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
+                      <p className="font-['Inter:Regular',sans-serif] font-normal text-[#263238] text-[14px]">Date of Birth</p>
+                      <div className="relative rounded-[12px] shrink-0 w-full">
+                        <div className="h-[47px] overflow-clip relative rounded-[12px] shrink-0 w-full">
+                          <input
+                            type="date"
+                            value={convertToInputFormat(nominee.dateOfBirth)}
+                            onChange={e => updateField(index, 'dateOfBirth', convertToStoredFormat(e.target.value))}
+                            className="absolute h-[47px] left-[12px] top-0 w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] text-[16px] text-black bg-transparent outline-none"
+                          />
+                        </div>
+                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                      </div>
+                      {errors[index]?.dateOfBirth && <p className="text-[#c21b17] text-[12px]">{errors[index].dateOfBirth}</p>}
+                    </div>
+                    <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
+                      <p className="font-['Inter:Regular',sans-serif] font-normal text-[#263238] text-[14px]">Share Percentage (%)</p>
+                      <div className="relative rounded-[12px] shrink-0 w-full">
+                        <div className="h-[47px] overflow-clip relative rounded-[12px] shrink-0 w-full">
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={nominee.percentage || ''}
+                            onChange={e => updateField(index, 'percentage', Number(e.target.value))}
+                            placeholder="e.g. 100"
+                            className="absolute h-[19.5px] left-[12px] top-[14px] w-[calc(100%-24px)] font-['Inter:Regular',sans-serif] text-[16px] text-black bg-transparent outline-none placeholder:text-[#999]"
+                          />
+                        </div>
+                        <div className="absolute h-[48px] left-0 rounded-[12px] top-[-0.5px] w-full border border-[#e5e7eb] pointer-events-none" />
+                      </div>
+                      {errors[index]?.percentage && <p className="text-[#c21b17] text-[12px]">{errors[index].percentage}</p>}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between w-full mb-[8px]">
+                  <p className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] ${formData.reduce((s, n) => s + (Number(n.percentage) || 0), 0) === 100 ? 'text-[#16a34a]' : 'text-[#c21b17]'}`}>
+                    Total: {formData.reduce((s, n) => s + (Number(n.percentage) || 0), 0)}% of 100%
+                  </p>
+                </div>
+                {totalError && <p className="text-[#c21b17] text-[12px] mb-[8px] w-full">{totalError}</p>}
+                {formData.length < 3 ? (
+                  <button
+                    onClick={addNominee}
+                    className="w-full h-[46px] rounded-[12px] border border-[#c21b17] bg-white text-[#c21b17] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] mb-[16px]"
+                  >
+                    + Add Another Nominee
+                  </button>
+                ) : (
+                  <p className="text-[#666] text-[13px] text-center w-full mb-[16px] font-['Inter:Regular',sans-serif]">Maximum 3 nominees allowed</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white relative shrink-0 w-full">
+            <div aria-hidden="true" className="absolute border-[#e5e7eb] border-[1px_0px_0px] border-solid inset-0 pointer-events-none" />
+            <div className="size-full">
+              <div className="content-stretch flex flex-col items-start pb-0 pt-[21px] px-[20px] relative w-full">
+                <div className="content-stretch flex gap-[12px] items-start relative shrink-0 w-full">
+                  <button
+                    onClick={onClose}
+                    className="basis-0 bg-white grow h-[50px] min-h-px min-w-px relative rounded-[12px] shrink-0 border border-[#d1d5dc]"
+                  >
+                    <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic text-[#263238] text-[16px] text-center">
+                      Cancel
+                    </p>
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="basis-0 bg-gradient-to-b from-[#c21b17] grow h-[50px] min-h-px min-w-px relative rounded-[12px] shrink-0 to-[#a11612]"
+                  >
+                    <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic text-[16px] text-center text-white">
+                      Save Changes
+                    </p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}

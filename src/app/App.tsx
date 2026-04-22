@@ -20,7 +20,7 @@ import imgIcon4 from 'figma:asset/7f9d264012cc83a80f7cb5acd5b31d45d8965a5a.png';
 import Mic from '../imports/Mic';
 import FathersName from '../imports/FathersName';
 import ProfessionalDetailsCard from '../imports/Container-684-514';
-import { EditBanner, DetailsPage, EditBottomSheet, EditPolicyBottomSheet, EditHealthConditionsBottomSheet, EditSubstancesBottomSheet, EditAssetsBottomSheet } from './components/DetailsComponents';
+import { EditBanner, DetailsPage, EditBottomSheet, EditPolicyBottomSheet, EditHealthConditionsBottomSheet, EditSubstancesBottomSheet, EditAssetsBottomSheet, EditNomineeBottomSheet } from './components/DetailsComponents';
 import { EditDocumentsBottomSheet } from './components/DocumentsComponents';
 import { EditFamilyDetailsBottomSheet } from './components/FamilyDetailsComponents';
 import { PlansList } from './components/PlanCards';
@@ -2241,6 +2241,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   // View tracking
   const [currentView, setCurrentView] = useState<'chat' | 'details'>('chat');
   const [showEditSheet, setShowEditSheet] = useState(false);
+  const [showEditNomineeSheet, setShowEditNomineeSheet] = useState(false);
   const [showEditPolicySheet, setShowEditPolicySheet] = useState(false);
   const [showEditDocumentsSheet, setShowEditDocumentsSheet] = useState(false);
   const [showEditFamilyDetailsSheet, setShowEditFamilyDetailsSheet] = useState(false);
@@ -10513,6 +10514,11 @@ Rules:
     triggerSaveToast();
   };
 
+  const handleNomineeSave = (updatedNominees: typeof userData.nominees) => {
+    setUserData((prev) => ({ ...prev, nominees: updatedNominees }));
+    triggerSaveToast();
+  };
+
   const handleFamilyDetailsSave = (updatedData: Partial<typeof userData>) => {
     setUserData((prev) => ({
       ...prev,
@@ -11421,7 +11427,7 @@ Rules:
                 onEditSubstances={() => setShowEditSubstancesSheet(true)}
                 onEditAssets={() => setShowEditAssetsSheet(true)}
                 onEditBankDetails={() => setShowEditBankDetailsSheet(true)}
-                onEditNominees={() => {}}
+                onEditNominees={() => setShowEditNomineeSheet(true)}
               />
             )}
           </AnimatePresence>
@@ -11434,6 +11440,17 @@ Rules:
                 onClose={() => setShowEditSheet(false)}
                 onSave={(newData) => setUserData(newData)}
                 onConfirmChanges={() => { triggerSaveToast(); }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Edit Nominee Details Bottom Sheet */}
+          <AnimatePresence>
+            {showEditNomineeSheet && (
+              <EditNomineeBottomSheet
+                nominees={userData.nominees || []}
+                onClose={() => setShowEditNomineeSheet(false)}
+                onSave={handleNomineeSave}
               />
             )}
           </AnimatePresence>
