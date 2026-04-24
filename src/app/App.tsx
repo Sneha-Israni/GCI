@@ -5402,7 +5402,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           },
           {
             id: '13',
-            content: "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have.",
+            content: "Which of the following assets or products do you currently own? Select all that apply.",
             sender: 'bot',
             timestamp: new Date(),
           },
@@ -5418,9 +5418,6 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
         setSelectedHealthConditions([]);
         selectedHealthConditionsRef.current = [];
         setSelectedSubstances([]);
-        // Auto-suggest assets based on annual income
-        const autoAssets = getAutoSuggestedAssets(userData.annualIncome);
-        setSelectedAssets(autoAssets);
         setShowHeightWeightReview(false);
         setExampleText('');
         break;
@@ -5501,7 +5498,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
           },
           {
             id: '13',
-            content: "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have.",
+            content: "Which of the following assets or products do you currently own? Select all that apply.",
             sender: 'bot',
             timestamp: new Date(),
           },
@@ -5945,19 +5942,6 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
       }
     };
   }, []);
-
-  // Auto-populate assets when asset declaration question appears
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.content === "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have." && 
-        lastMessage?.sender === 'bot') {
-      // Auto-suggest assets based on annual income (only if not already populated)
-      const autoAssets = getAutoSuggestedAssets(userData.annualIncome);
-      if (autoAssets.length > 0 && selectedAssets.length === 0) {
-        setSelectedAssets(autoAssets);
-      }
-    }
-  }, [messages]);
 
   // Removed old handleMicClick - only press-and-hold voice recording is supported
 
@@ -10354,14 +10338,12 @@ Rules:
     // Move to asset declaration step
     setCurrentStep(33); // Step 25 in UI (Assets)
 
-    // Auto-suggest assets based on annual income
-    const autoSuggestedAssets = getAutoSuggestedAssets(userData.annualIncome);
-    setSelectedAssets(autoSuggestedAssets);
+    setSelectedAssets([]);
 
     setTimeout(() => {
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have.",
+        content: "Which of the following assets or products do you currently own? Select all that apply.",
         sender: 'bot',
         timestamp: new Date(),
       };
@@ -10385,12 +10367,11 @@ Rules:
     if (selection.includes("I don't consume any substances") || selection.length === 0) {
       setUserData((prev) => ({ ...prev, substanceConsumption: { tobacco: { consumes: false }, alcohol: { consumes: false }, narcotics: { consumes: false } } }));
       setCurrentStep(33);
-      const autoSuggestedAssets = getAutoSuggestedAssets(userData.annualIncome);
-      setSelectedAssets(autoSuggestedAssets);
+      setSelectedAssets([]);
       setTimeout(() => {
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have.",
+          content: "Which of the following assets or products do you currently own? Select all that apply.",
           sender: 'bot',
           timestamp: new Date(),
         };
@@ -10545,49 +10526,6 @@ Rules:
       setMessages((prev) => [...prev, botMsg]);
       setExampleText('Occasionally, once or twice a month');
     }, 600);
-  };
-
-  // Helper function to auto-suggest assets based on annual income
-  const getAutoSuggestedAssets = (annualIncome: string): string[] => {
-    // Extract numeric value from income string (e.g., "₹15 lakhs per year" -> 15)
-    const incomeMatch = annualIncome.match(/(\d+(?:\.\d+)?)/);
-    if (!incomeMatch) return [];
-    
-    const incomeLPA = parseFloat(incomeMatch[1]);
-    const suggestedAssets: string[] = [];
-    
-    // Income-based asset suggestions
-    if (incomeLPA >= 3) {
-      suggestedAssets.push('2 wheeler');
-      suggestedAssets.push('Bank Deposits');
-    }
-    
-    if (incomeLPA >= 5) {
-      suggestedAssets.push('Health Insurance');
-    }
-    
-    if (incomeLPA >= 8) {
-      suggestedAssets.push('Small Car/Sedan/SUV');
-      suggestedAssets.push('Life Insurance');
-    }
-    
-    if (incomeLPA >= 12) {
-      suggestedAssets.push('Home Loan');
-    }
-    
-    if (incomeLPA >= 15) {
-      suggestedAssets.push('Pension Plan');
-    }
-    
-    if (incomeLPA >= 20) {
-      suggestedAssets.push('Own house');
-    }
-    
-    if (incomeLPA >= 25) {
-      suggestedAssets.push('Land');
-    }
-    
-    return suggestedAssets;
   };
 
   const handleAssetToggle = (asset: string) => {
@@ -11649,7 +11587,7 @@ Rules:
               )}
               
               {/* Show asset declaration selector */}
-              {messages[messages.length - 1]?.content === "Based on your annual income, I've pre-filled some assets you might own. Please review and edit as needed to indicate which of the following assets or products you already have." && (
+              {messages[messages.length - 1]?.content === "Which of the following assets or products do you currently own? Select all that apply." && (
                 <AssetDeclarationSelector
                   selectedAssets={selectedAssets}
                   onToggle={handleAssetToggle}
