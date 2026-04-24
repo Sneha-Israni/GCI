@@ -41,8 +41,7 @@ export function SubstanceConsumptionSelector({
       {substances.map((substance, index) => {
         const isSelected = selectedSubstances.includes(substance);
         const isDisabled = !isSelected && (
-          (isNoneSelected && substance !== "I don't consume any substances") ||
-          (!isNoneSelected && substance === "I don't consume any substances" && selectedSubstances.length > 0)
+          (isNoneSelected && substance !== "I don't consume any substances")
         );
 
         return (

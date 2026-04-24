@@ -56,6 +56,7 @@ r a category
 22. Business Card upload method --> editing fields from the professional details card 
 23. Substances step --> Tobacco section functionality added
 24. Health Conditions selected 1st follow-up working fine along with active i don't have any issues button staying active
+25. Health issues medicine open-ended question fixed
 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
