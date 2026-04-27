@@ -41,6 +41,41 @@ import { LanguageSelectionScreen } from './components/LanguageSelectionScreen';
 import { ProgressStepper } from './components/ProgressStepper';
 import { VoiceRecordingUI } from './components/VoiceRecordingUI';
 import ProfessionalDetailsCardImport from '../imports/Container-682-328';
+import { publicAnonKey as SUPABASE_ANON_KEY } from '../../utils/supabase/info';
+
+// Module-level utilities — OpenAI proxy via Supabase Edge Function
+async function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function callOpenAI(payload: {
+  model: string;
+  messages: object[];
+  max_tokens: number;
+  response_format?: object;
+  temperature?: number;
+}): Promise<any> {
+  const response = await fetch(
+    'https://qechohrhectghqmbwuto.supabase.co/functions/v1/index',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`OpenAI proxy error: ${response.status}`);
+  }
+  return response.json();
+}
 
 // Types
 interface Message {
@@ -6642,13 +6677,6 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
 
   // OpenAI-powered parsing function for natural language inputs
   const parseWithOpenAI = async (userInput: string, step: number): Promise<any> => {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      console.warn('⚠️ OpenAI API key not configured, using regex fallback');
-      return parseWithClientSideFallback(userInput, step);
-    }
-
     console.log(`🤖 parseWithOpenAI called — step: ${step}, input: "${userInput}"`);
 
     const stepPrompts: Record<number, string> = {
@@ -6689,30 +6717,16 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userInput },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0,
-          max_tokens: 250,
-        }),
+      const data = await callOpenAI({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userInput },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0,
+        max_tokens: 250,
       });
-
-      if (!response.ok) {
-        console.error('OpenAI API error:', response.status, response.statusText);
-        return parseWithClientSideFallback(userInput, step);
-      }
-
-      const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (!content) return parseWithClientSideFallback(userInput, step);
 
@@ -9372,24 +9386,6 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
       console.log(`🔍 Starting extraction for ${docType}, file: ${file.name}, type: ${mimeType}`);
 
       try {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-        if (!apiKey) {
-          console.error('❌ VITE_OPENAI_API_KEY is not set');
-          return;
-        }
-
-        // Convert file to base64
-        const toBase64 = (f: File): Promise<string> =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const result = reader.result as string;
-              resolve(result.split(',')[1]);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(f);
-          });
-
         const base64 = await toBase64(file);
         // Use image/jpeg as fallback for image/jpg since OpenAI expects standard MIME types
         const normalizedMime = mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
@@ -9411,74 +9407,60 @@ Rules:
 - Do NOT include gender, nationality, Aadhaar number, or any other field
 - Do NOT wrap the JSON in markdown code blocks`;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: systemPrompt },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: `data:${normalizedMime};base64,${base64}`,
-                      detail: 'high',
-                    },
+        const data = await callOpenAI({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: systemPrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${normalizedMime};base64,${base64}`,
+                    detail: 'high',
                   },
-                ],
-              },
-            ],
-            response_format: { type: 'json_object' },
-            max_tokens: 600,
-          }),
+                },
+              ],
+            },
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 600,
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          const rawContent = data.choices?.[0]?.message?.content || '{}';
-          console.log(`📄 Raw API response for ${docType}:`, rawContent);
-          let extracted: Record<string, string | null> = {};
-          try {
-            extracted = JSON.parse(rawContent);
-          } catch (parseErr) {
-            console.error('❌ Failed to parse extraction JSON:', parseErr, rawContent);
-          }
-          console.log(`✅ Parsed extraction for ${docType}:`, extracted);
-
-          // Resolve with fallback key names in case model uses variations
-          const resolvedName = extracted.fullName || extracted.name || extracted.holderName || null;
-          const resolvedFatherName = extracted.fatherName || extracted.father_name || extracted.fathersName || extracted.guardianName || null;
-          const resolvedDOB = extracted.dateOfBirth || extracted.dob || extracted.date_of_birth || extracted.DateOfBirth || null;
-          const resolvedAddress = extracted.communicationAddress || extracted.address || extracted.Address || null;
-          const resolvedPincode = extracted.pincode || extracted.pin || extracted.postalCode || extracted.postal_code || null;
-
-          console.log(`🔑 Resolved fields — name: ${resolvedName}, father: ${resolvedFatherName}, dob: ${resolvedDOB}, address: ${resolvedAddress}, pincode: ${resolvedPincode}`);
-
-          setUserData((prev) => ({
-            ...prev,
-            ...(resolvedName && { fullName: resolvedName }),
-            ...(resolvedDOB && { dateOfBirth: resolvedDOB }),
-            // Only set fatherName from PAN if Aadhaar hasn't already populated it
-            ...(resolvedFatherName && !prev.fatherName && { fatherName: resolvedFatherName }),
-            ...(resolvedAddress && {
-              communicationAddress: resolvedAddress,
-              permanentAddress: resolvedAddress,
-            }),
-            ...(resolvedPincode && { pincode: String(resolvedPincode) }),
-            // nationality and countryOfBirth are always hardcoded — never overwritten
-            // gender is always from step 1 — never overwritten
-          }));
-          setDocumentExtractedData(extracted);
-        } else {
-          const errText = await response.text();
-          console.error(`❌ OpenAI Vision API error ${response.status}:`, errText);
+        const rawContent = data.choices?.[0]?.message?.content || '{}';
+        console.log(`📄 Raw API response for ${docType}:`, rawContent);
+        let extracted: Record<string, string | null> = {};
+        try {
+          extracted = JSON.parse(rawContent);
+        } catch (parseErr) {
+          console.error('❌ Failed to parse extraction JSON:', parseErr, rawContent);
         }
+        console.log(`✅ Parsed extraction for ${docType}:`, extracted);
+
+        // Resolve with fallback key names in case model uses variations
+        const resolvedName = extracted.fullName || extracted.name || extracted.holderName || null;
+        const resolvedFatherName = extracted.fatherName || extracted.father_name || extracted.fathersName || extracted.guardianName || null;
+        const resolvedDOB = extracted.dateOfBirth || extracted.dob || extracted.date_of_birth || extracted.DateOfBirth || null;
+        const resolvedAddress = extracted.communicationAddress || extracted.address || extracted.Address || null;
+        const resolvedPincode = extracted.pincode || extracted.pin || extracted.postalCode || extracted.postal_code || null;
+
+        console.log(`🔑 Resolved fields — name: ${resolvedName}, father: ${resolvedFatherName}, dob: ${resolvedDOB}, address: ${resolvedAddress}, pincode: ${resolvedPincode}`);
+
+        setUserData((prev) => ({
+          ...prev,
+          ...(resolvedName && { fullName: resolvedName }),
+          ...(resolvedDOB && { dateOfBirth: resolvedDOB }),
+          // Only set fatherName from PAN if Aadhaar hasn't already populated it
+          ...(resolvedFatherName && !prev.fatherName && { fatherName: resolvedFatherName }),
+          ...(resolvedAddress && {
+            communicationAddress: resolvedAddress,
+            permanentAddress: resolvedAddress,
+          }),
+          ...(resolvedPincode && { pincode: String(resolvedPincode) }),
+          // nationality and countryOfBirth are always hardcoded — never overwritten
+          // gender is always from step 1 — never overwritten
+        }));
+        setDocumentExtractedData(extracted);
       } catch (err) {
         console.error('Document extraction error:', err);
       } finally {
@@ -9568,23 +9550,10 @@ Rules:
     const photoFile = userData.fullLengthPhoto;
     if (photoFile) {
       try {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-        if (apiKey) {
-          const toBase64 = (f: File): Promise<string> =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                const result = reader.result as string;
-                resolve(result.split(',')[1]);
-              };
-              reader.onerror = reject;
-              reader.readAsDataURL(f);
-            });
+        const base64 = await toBase64(photoFile);
+        const mimeType = photoFile.type === 'image/jpg' ? 'image/jpeg' : photoFile.type;
 
-          const base64 = await toBase64(photoFile);
-          const mimeType = photoFile.type === 'image/jpg' ? 'image/jpeg' : photoFile.type;
-
-          const photoPrompt = `This is a full-body photograph of a person. Estimate their physical measurements based on body proportions and visible build.
+        const photoPrompt = `This is a full-body photograph of a person. Estimate their physical measurements based on body proportions and visible build.
 Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
 {
   "height_cm": [single number],
@@ -9592,59 +9561,47 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
   "confidence": "low" or "medium" or "high"
 }`;
 
-          const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: [
+        const data = await callOpenAI({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: photoPrompt },
                 {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: photoPrompt },
-                    {
-                      type: 'image_url',
-                      image_url: {
-                        url: `data:${mimeType};base64,${base64}`,
-                        detail: 'high',
-                      },
-                    },
-                  ],
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64}`,
+                    detail: 'high',
+                  },
                 },
               ],
-              max_tokens: 100,
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
-            console.log('📏 Full-length photo AI response:', rawContent);
-            try {
-              const parsed = JSON.parse(rawContent);
-              const heightNum = Number(parsed.height_cm) || 165;
-              const weightNum = Number(parsed.weight_kg) || 65;
-              setUserData((prev) => ({
-                ...prev,
-                height: `${heightNum} cm`,
-                weight: `${weightNum} kg`,
-                aiEstimatedHeight: heightNum,
-                aiEstimatedWeight: weightNum,
-              }));
-            } catch {
-              // Parsing failed — use fallback
-              setUserData((prev) => ({
-                ...prev,
-                height: '165 cm',
-                weight: '65 kg',
-                aiEstimatedHeight: 165,
-                aiEstimatedWeight: 65,
-              }));
-            }
-          }
+            },
+          ],
+          max_tokens: 100,
+        });
+        const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+        console.log('📏 Full-length photo AI response:', rawContent);
+        try {
+          const parsed = JSON.parse(rawContent);
+          const heightNum = Number(parsed.height_cm) || 165;
+          const weightNum = Number(parsed.weight_kg) || 65;
+          setUserData((prev) => ({
+            ...prev,
+            height: `${heightNum} cm`,
+            weight: `${weightNum} kg`,
+            aiEstimatedHeight: heightNum,
+            aiEstimatedWeight: weightNum,
+          }));
+        } catch {
+          // Parsing failed — use fallback
+          setUserData((prev) => ({
+            ...prev,
+            height: '165 cm',
+            weight: '65 kg',
+            aiEstimatedHeight: 165,
+            aiEstimatedWeight: 65,
+          }));
         }
       } catch (err) {
         console.error('Photo analysis error:', err);
@@ -9800,25 +9757,6 @@ Return ONLY a valid JSON object, no explanation, no markdown, no backticks:
     setIsProcessingBusinessCard(true);
 
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-      if (!apiKey) {
-        console.error('❌ VITE_OPENAI_API_KEY is not set');
-        setIsProcessingBusinessCard(false);
-        return;
-      }
-
-      // Convert business card image to base64 — reusing existing pattern
-      const toBase64 = (f: File): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const result = reader.result as string;
-            resolve(result.split(',')[1]);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(f);
-        });
-
       const base64 = await toBase64(file);
       const mimeType = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
 
@@ -9842,97 +9780,70 @@ Rules:
 - person_name: individual's name if visible
 - If any field is not clearly visible return empty string — never guess`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: businessCardPrompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:${mimeType};base64,${base64}`,
-                    detail: 'high',
-                  },
+      const data = await callOpenAI({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: businessCardPrompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`,
+                  detail: 'high',
                 },
-              ],
-            },
-          ],
-          max_tokens: 300,
-        }),
+              },
+            ],
+          },
+        ],
+        max_tokens: 300,
       });
+      const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+      console.log('💼 Business card extraction raw response:', rawContent);
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
-        console.log('💼 Business card extraction raw response:', rawContent);
+      let extracted: Record<string, string> = {};
+      try {
+        extracted = JSON.parse(rawContent);
+      } catch (parseErr) {
+        console.error('❌ Failed to parse business card JSON:', parseErr, rawContent);
+      }
 
-        let extracted: Record<string, string> = {};
-        try {
-          extracted = JSON.parse(rawContent);
-        } catch (parseErr) {
-          console.error('❌ Failed to parse business card JSON:', parseErr, rawContent);
-        }
+      const extractedEmployer = extracted.employer_name || '';
+      const extractedDesignation = extracted.designation || '';
+      const extractedOccupation = extracted.occupation || '';
 
-        const extractedEmployer = extracted.employer_name || '';
-        const extractedDesignation = extracted.designation || '';
-        const extractedOccupation = extracted.occupation || '';
+      // Call the existing parseWithOpenAI step-18 function to infer industry, jobDuties, hazardousEnvironment
+      // — the same auto-population the manual text path uses. No second Vision call.
+      const inferText = `${extractedDesignation} at ${extractedEmployer}, ${extractedOccupation}`;
+      const inferred = await parseWithOpenAI(inferText, 18);
 
-        // Call the existing parseWithOpenAI step-18 function to infer industry, jobDuties, hazardousEnvironment
-        // — the same auto-population the manual text path uses. No second Vision call.
-        const inferText = `${extractedDesignation} at ${extractedEmployer}, ${extractedOccupation}`;
-        const inferred = await parseWithOpenAI(inferText, 18);
+      const professionalData = {
+        employerName: extractedEmployer,
+        designation: extractedDesignation,
+        occupation: extractedOccupation,
+        industry: inferred?.industry || '',
+        jobDuties: inferred?.jobDuties || '',
+        hazardousEnvironment: inferred?.hazardousEnvironment || 'No',
+      };
 
-        const professionalData = {
-          employerName: extractedEmployer,
-          designation: extractedDesignation,
-          occupation: extractedOccupation,
-          industry: inferred?.industry || '',
-          jobDuties: inferred?.jobDuties || '',
-          hazardousEnvironment: inferred?.hazardousEnvironment || 'No',
-        };
+      setUserData((prev) => ({ ...prev, ...professionalData }));
+      setTempProfessionalData(professionalData);
 
-        setUserData((prev) => ({ ...prev, ...professionalData }));
-        setTempProfessionalData(professionalData);
-
-        // If any key field is empty, show a note in chat for the user to complete manually
-        if (!extractedEmployer || !extractedDesignation || !extractedOccupation) {
-          setTimeout(() => {
-            const noteMessage: Message = {
-              id: (Date.now() + 2).toString(),
-              content: 'Some details could not be read. Please tap Edit to complete.',
-              sender: 'bot',
-              timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, noteMessage]);
-          }, 400);
-        }
-
-        console.log('✅ Business card professional details extracted:', professionalData);
-      } else {
-        const errText = await response.text();
-        console.error(`❌ OpenAI Vision error ${response.status}:`, errText);
-
-        // Fallback: empty fields, let user fill in manually
-        const emptyData = { employerName: '', designation: '', occupation: '', industry: '', jobDuties: '', hazardousEnvironment: 'No' };
-        setTempProfessionalData(emptyData);
+      // If any key field is empty, show a note in chat for the user to complete manually
+      if (!extractedEmployer || !extractedDesignation || !extractedOccupation) {
         setTimeout(() => {
           const noteMessage: Message = {
             id: (Date.now() + 2).toString(),
-            content: 'Could not read the card clearly. Please fill in the details manually.',
+            content: 'Some details could not be read. Please tap Edit to complete.',
             sender: 'bot',
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, noteMessage]);
         }, 400);
       }
+
+      console.log('✅ Business card professional details extracted:', professionalData);
     } catch (err) {
       console.error('❌ Business card extraction error:', err);
       const emptyData = { employerName: '', designation: '', occupation: '', industry: '', jobDuties: '', hazardousEnvironment: 'No' };
@@ -10623,25 +10534,6 @@ Rules:
     setIsProcessingCheque(true);
 
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-      if (!apiKey) {
-        console.error('❌ VITE_OPENAI_API_KEY is not set');
-        setIsProcessingCheque(false);
-        return;
-      }
-
-      // Convert cheque image to base64 — reusing existing pattern
-      const toBase64 = (f: File): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const result = reader.result as string;
-            resolve(result.split(',')[1]);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(f);
-        });
-
       const base64 = await toBase64(file);
       const mimeType = file.type === 'image/jpg' ? 'image/jpeg' : file.type;
 
@@ -10663,61 +10555,47 @@ Rules:
 - account_number and ifsc_code must be extracted exactly as printed
 - confidence should reflect overall readability of the cheque`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: chequePrompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:${mimeType};base64,${base64}`,
-                    detail: 'high',
-                  },
+      const data = await callOpenAI({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: chequePrompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`,
+                  detail: 'high',
                 },
-              ],
-            },
-          ],
-          max_tokens: 400,
-        }),
+              },
+            ],
+          },
+        ],
+        max_tokens: 400,
       });
+      const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+      console.log('🏦 Cheque extraction raw response:', rawContent);
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawContent = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
-        console.log('🏦 Cheque extraction raw response:', rawContent);
-
-        let extracted: Record<string, string | null> = {};
-        try {
-          extracted = JSON.parse(rawContent);
-        } catch (parseErr) {
-          console.error('❌ Failed to parse cheque JSON:', parseErr, rawContent);
-        }
-
-        setUserData((prev) => ({
-          ...prev,
-          accountHolderName: extracted.account_holder_name || '',
-          bankName: extracted.bank_name || '',
-          accountNumber: extracted.account_number || '',
-          ifscCode: extracted.ifsc_code || '',
-          branchName: extracted.branch_name || '',
-          micrCode: (extracted.micr_code && extracted.micr_code !== 'null') ? extracted.micr_code : '',
-          bankAiExtractionConfidence: extracted.confidence || 'low',
-        }));
-
-        console.log('✅ Cheque bank details extracted successfully.');
-      } else {
-        const errText = await response.text();
-        console.error(`❌ OpenAI Vision error ${response.status}:`, errText);
+      let extracted: Record<string, string | null> = {};
+      try {
+        extracted = JSON.parse(rawContent);
+      } catch (parseErr) {
+        console.error('❌ Failed to parse cheque JSON:', parseErr, rawContent);
       }
+
+      setUserData((prev) => ({
+        ...prev,
+        accountHolderName: extracted.account_holder_name || '',
+        bankName: extracted.bank_name || '',
+        accountNumber: extracted.account_number || '',
+        ifscCode: extracted.ifsc_code || '',
+        branchName: extracted.branch_name || '',
+        micrCode: (extracted.micr_code && extracted.micr_code !== 'null') ? extracted.micr_code : '',
+        bankAiExtractionConfidence: extracted.confidence || 'low',
+      }));
+
+      console.log('✅ Cheque bank details extracted successfully.');
     } catch (err) {
       console.error('❌ Cheque extraction error:', err);
     } finally {

@@ -57,7 +57,10 @@ r a category
 23. Substances step --> Tobacco section functionality added
 24. Health Conditions selected 1st follow-up working fine along with active i don't have any issues button staying active
 25. Health issues medicine open-ended question fixed
-
+26. ubstances questions, if use
+r selects a substance then the I don't consume any susbtances was getting disabled - it's fix
+ed now
+27. Removal of the auto-selection of the assets 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
