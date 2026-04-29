@@ -24,4 +24,5 @@ ALWAYS do these on every edit:
 Core features that must always keep working:
 - Mobile OTP login
 - Language selection
+- Age & Gender selection
 - End-to-end onboarding flow

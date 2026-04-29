@@ -50,6 +50,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
   });
 
   const [allYesEnabled, setAllYesEnabled] = useState(false);
+  const [discrepancyDetails, setDiscrepancyDetails] = useState<string>('');
 
   const handleAllYesToggle = (enabled: boolean) => {
     setAllYesEnabled(enabled);
@@ -200,6 +201,20 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
             value={answers.foundDiscrepancy} 
             onChange={(val) => setAnswers({ ...answers, foundDiscrepancy: val })} 
           />
+          {answers.foundDiscrepancy === true && (
+            <div className="mt-2">
+              <p className="text-sm mb-1">
+                Please provide details
+                <span className="text-red-500"> *</span>
+              </p>
+              <textarea
+                className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[60px]"
+                placeholder="Please provide details..."
+                value={discrepancyDetails}
+                onChange={(e) => setDiscrepancyDetails(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Question 5 */}
