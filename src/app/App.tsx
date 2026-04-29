@@ -1699,7 +1699,7 @@ function DocumentUpload({
               </p>
               {docType === 'PAN Card' && (
                 <p className="text-xs text-gray-600 mt-1">
-                  {t('Recommended: PAN Card, Form 60')}
+                  {t("Don't have a PAN Card? Form 60 is accepted as an alternative")}
                 </p>
               )}
               {docType === 'Age Proof' && (
