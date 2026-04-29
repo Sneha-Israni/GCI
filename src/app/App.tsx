@@ -10211,19 +10211,26 @@ Rules:
   const handleSubstanceToggle = (substance: string, autoConfirm: boolean = false) => {
     setSelectedSubstances((prev) => {
       const newSelection = (() => {
-        // If selecting "I don't consume any substances", clear all other selections
+        // "I don't consume" → clears everything including Stopped
         if (substance === "I don't consume any substances") {
           return prev.includes(substance) ? [] : [substance];
         }
-        
-        // If selecting a substance, remove "I don't consume any substances" if present
-        const withoutNone = prev.filter(s => s !== "I don't consume any substances");
-        
+
+        // "Stopped" → clears Tobacco, Alcohol, Narcotics and "I don't consume"
+        if (substance === 'Stopped') {
+          return prev.includes('Stopped') ? [] : ['Stopped'];
+        }
+
+        // Tobacco/Alcohol/Narcotics → clears "Stopped" and "I don't consume"
+        const withoutExclusive = prev.filter(
+          s => s !== "I don't consume any substances" && s !== 'Stopped'
+        );
+
         // Toggle the selected substance
-        if (withoutNone.includes(substance)) {
-          return withoutNone.filter(s => s !== substance);
+        if (withoutExclusive.includes(substance)) {
+          return withoutExclusive.filter(s => s !== substance);
         } else {
-          return [...withoutNone, substance];
+          return [...withoutExclusive, substance];
         }
       })();
 

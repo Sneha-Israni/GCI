@@ -16,6 +16,7 @@ export function SubstanceConsumptionSelector({
     'Tobacco',
     'Alcohol',
     'Narcotics',
+    'Stopped',
     "I don't consume any substances"
   ];
 

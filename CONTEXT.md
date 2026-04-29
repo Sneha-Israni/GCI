@@ -63,6 +63,7 @@ ed now
 27. Removal of the auto-selection of the assets
 28. SCR step "if yes, please provide more details" question free-form input added only for one question for testing. 
 29. Added for risk association question 
+30. SCR questions working fine with auto-scroll on the question explanaiton if missed. 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
