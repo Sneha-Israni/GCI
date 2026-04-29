@@ -65,6 +65,7 @@ ed now
 29. Added for risk association question 
 30. SCR questions working fine with auto-scroll on the question explanaiton if missed. 
 31. In Substances step, added a 'Stopped' option. 
+32. Quantity details added for the Substances. 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 

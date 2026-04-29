@@ -1695,7 +1695,7 @@ function DocumentUpload({
             {/* Document Title */}
             <div>
               <p className="font-semibold text-gray-900 text-[15px]">
-                {t(docType === 'PAN Card' ? 'Tax Identification Document' : docType === 'Age Proof' ? 'Age Proof (Aadhaar / Govt ID)' : docType)}
+                {t(docType === 'PAN Card' ? 'PAN Card' : docType === 'Age Proof' ? 'Age Proof (Aadhaar / Govt ID)' : docType)}
               </p>
               {docType === 'PAN Card' && (
                 <p className="text-xs text-gray-600 mt-1">
