@@ -8365,6 +8365,19 @@ Return ONLY JSON: {"amount": "<normalised string or null>", "timeframe": "<norma
         setTempSubstanceDetails(updated);
         setExampleText('');
         advanceSubstanceQueue(updated);
+
+      } else if (substanceFollowUpStageRef.current === 'stopped_date') {
+        const stoppedDate = messageText.trim();
+        setExampleText('');
+        completeSubstancesAndMoveToAssets({
+          tobacco: { consumes: false },
+          alcohol: { consumes: false },
+          narcotics: { consumes: false },
+          stopped: {
+            previously_consumed: true,
+            stopped_date: stoppedDate,
+          },
+        });
       }
     }
     // Step 34.2: Manual bank details entry
@@ -10281,6 +10294,12 @@ Rules:
     // Clear selection after saving
     setSelectedSubstances([]);
 
+    // "Stopped" path — skip queue, go straight to date question
+    if (selection.includes('Stopped')) {
+      startStoppedSubstanceFlow();
+      return;
+    }
+
     // "I don't consume" path — unchanged behaviour
     if (selection.includes("I don't consume any substances") || selection.length === 0) {
       setUserData((prev) => ({ ...prev, substanceConsumption: { tobacco: { consumes: false }, alcohol: { consumes: false }, narcotics: { consumes: false } } }));
@@ -10368,6 +10387,24 @@ Rules:
         setMessages((prev) => [...prev, botMessage]);
       }, 1000);
     }
+  };
+
+  // Stopped substance follow-up — goes straight to date question
+  const startStoppedSubstanceFlow = () => {
+    setCurrentStep(32.1);
+    setSubstanceFollowUpStage('stopped_date');
+    substanceFollowUpStageRef.current = 'stopped_date';
+    setTimeout(() => {
+      setIsThinking(false);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'When did you stop consuming substances? (DD/MM/YYYY)',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+      setExampleText('e.g. 15/03/2022');
+    }, 1000);
   };
 
   const handleSubstanceConsumptionConfirm = () => {
