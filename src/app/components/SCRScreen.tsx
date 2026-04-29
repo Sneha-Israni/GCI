@@ -52,6 +52,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
   const [allYesEnabled, setAllYesEnabled] = useState(false);
   const [discrepancyDetails, setDiscrepancyDetails] = useState<string>('');
   const [riskDetails, setRiskDetails] = useState<string>('');
+  const [incomeDetails, setIncomeDetails] = useState<string>('');
 
   const handleAllYesToggle = (enabled: boolean) => {
     setAllYesEnabled(enabled);
@@ -77,6 +78,9 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
         confirmedIncome: null,
         ensuredDisclosures: null,
       });
+      setDiscrepancyDetails('');
+      setRiskDetails('');
+      setIncomeDetails('');
     }
   };
 
@@ -252,6 +256,20 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
             value={answers.confirmedIncome} 
             onChange={(val) => setAnswers({ ...answers, confirmedIncome: val })} 
           />
+          {answers.confirmedIncome === true && (
+            <div className="mt-2">
+              <p className="text-sm mb-1">
+                Please provide details
+                <span className="text-red-500"> *</span>
+              </p>
+              <textarea
+                className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[60px]"
+                placeholder="Please provide details..."
+                value={incomeDetails}
+                onChange={(e) => setIncomeDetails(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Question 7 */}
