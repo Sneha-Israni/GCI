@@ -55,14 +55,20 @@ export function SubstanceConsumptionSelector({
             onClick={() => !isDisabled && handleClick(substance)}
             disabled={isDisabled}
             className={`relative flex items-center justify-between px-4 py-3 rounded-[14px] transition-all ${
-              isSelected 
-                ? 'bg-[#c21b17] text-white shadow-md' 
+              isSelected
+                ? substance === 'Stopped'
+                  ? 'bg-amber-500 text-white shadow-md'
+                  : 'bg-[#c21b17] text-white shadow-md'
                 : isDisabled
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : substance === 'Stopped'
+                ? 'bg-white hover:bg-amber-50 text-amber-600 shadow-sm'
                 : 'bg-white hover:bg-[#fff7f7] text-[#c21b17] shadow-sm'
             } ${
               substance === "I don't consume any substances" && !isSelected && !isDisabled
                 ? 'border-2 border-green-500'
+                : substance === 'Stopped' && !isSelected && !isDisabled
+                ? 'border-2 border-amber-400'
                 : ''
             }`}
           >
@@ -72,6 +78,8 @@ export function SubstanceConsumptionSelector({
                   ? 'border-white bg-white' 
                   : substance === "I don't consume any substances" && !isDisabled
                   ? 'border-black'
+                  : substance === 'Stopped' && !isDisabled
+                  ? 'border-amber-500'
                   : 'border-[#c21b17]'
               }`}>
                 {isSelected && (

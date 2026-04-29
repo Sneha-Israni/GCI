@@ -64,6 +64,7 @@ ed now
 28. SCR step "if yes, please provide more details" question free-form input added only for one question for testing. 
 29. Added for risk association question 
 30. SCR questions working fine with auto-scroll on the question explanaiton if missed. 
+31. In Substances step, added a 'Stopped' option. 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
