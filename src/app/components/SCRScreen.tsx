@@ -53,6 +53,9 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
   const [discrepancyDetails, setDiscrepancyDetails] = useState<string>('');
   const [riskDetails, setRiskDetails] = useState<string>('');
   const [incomeDetails, setIncomeDetails] = useState<string>('');
+  const [discrepancyError, setDiscrepancyError] = useState(false);
+  const [riskError, setRiskError] = useState(false);
+  const [incomeError, setIncomeError] = useState(false);
 
   const handleAllYesToggle = (enabled: boolean) => {
     setAllYesEnabled(enabled);
@@ -81,6 +84,9 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
       setDiscrepancyDetails('');
       setRiskDetails('');
       setIncomeDetails('');
+      setDiscrepancyError(false);
+      setRiskError(false);
+      setIncomeError(false);
     }
   };
 
@@ -99,6 +105,16 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
   };
 
   const handleSubmit = () => {
+    const detailsValid =
+      (!answers.foundDiscrepancy || discrepancyDetails.trim() !== '') &&
+      (!answers.riskAssociated || riskDetails.trim() !== '') &&
+      (!answers.confirmedIncome || incomeDetails.trim() !== '');
+    if (!detailsValid) {
+      if (answers.foundDiscrepancy && discrepancyDetails.trim() === '') setDiscrepancyError(true);
+      if (answers.riskAssociated && riskDetails.trim() === '') setRiskError(true);
+      if (answers.confirmedIncome && incomeDetails.trim() === '') setIncomeError(true);
+      return;
+    }
     if (isFormValid()) {
       onSubmit(answers);
     }
@@ -213,11 +229,16 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
-                className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[60px]"
+                className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
+                  discrepancyError ? 'border-red-500' : 'border-gray-200'
+                }`}
                 placeholder="Please provide details..."
                 value={discrepancyDetails}
-                onChange={(e) => setDiscrepancyDetails(e.target.value)}
+                onChange={(e) => { setDiscrepancyDetails(e.target.value); setDiscrepancyError(false); }}
               />
+              {discrepancyError && (
+                <p className="text-red-500 text-xs mt-1">Please provide details to continue</p>
+              )}
             </div>
           )}
         </div>
@@ -238,11 +259,16 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
-                className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[60px]"
+                className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
+                  riskError ? 'border-red-500' : 'border-gray-200'
+                }`}
                 placeholder="Please provide details..."
                 value={riskDetails}
-                onChange={(e) => setRiskDetails(e.target.value)}
+                onChange={(e) => { setRiskDetails(e.target.value); setRiskError(false); }}
               />
+              {riskError && (
+                <p className="text-red-500 text-xs mt-1">Please provide details to continue</p>
+              )}
             </div>
           )}
         </div>
@@ -263,11 +289,16 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
-                className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[60px]"
+                className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
+                  incomeError ? 'border-red-500' : 'border-gray-200'
+                }`}
                 placeholder="Please provide details..."
                 value={incomeDetails}
-                onChange={(e) => setIncomeDetails(e.target.value)}
+                onChange={(e) => { setIncomeDetails(e.target.value); setIncomeError(false); }}
               />
+              {incomeError && (
+                <p className="text-red-500 text-xs mt-1">Please provide details to continue</p>
+              )}
             </div>
           )}
         </div>
