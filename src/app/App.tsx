@@ -10437,14 +10437,14 @@ Rules:
     const quantityQuestion =
       form === 'Cigarettes' ? 'How many cigarettes do you smoke in a day?' :
       form === 'Bidi' ? 'How many bidis do you smoke in a day?' :
-      form === 'Both (Smoking + Chewing)' ? 'How many times a day do you consume tobacco in total?' :
-      'How many times a day do you consume tobacco?'; // Raw Tobacco or Chewing Tobacco
+      form === 'Both (Smoking + Chewing)' ? 'How many cigarettes or bidis and pouches do you consume per day?' :
+      'How many pouches or packets do you consume per day?'; // Raw Tobacco or Chewing Tobacco
 
     const exampleAnswer =
-      form === 'Cigarettes' ? '10 per day' :
-      form === 'Bidi' ? '5 per day' :
-      form === 'Both (Smoking + Chewing)' ? '15 times a day' :
-      '3 times a day';
+      form === 'Cigarettes' ? '10 cigarettes per day' :
+      form === 'Bidi' ? '8 bidis per day' :
+      form === 'Both (Smoking + Chewing)' ? '5 cigarettes and 1 pouch per day' :
+      '2 pouches per day';
 
     setSubstanceFollowUpStage('tobacco_quantity');
     substanceFollowUpStageRef.current = 'tobacco_quantity';
@@ -10462,10 +10462,18 @@ Rules:
     setTempSubstanceDetails((prev) => ({ ...prev, alcohol: { ...prev.alcohol, type } }));
     setSubstanceFollowUpStage('alcohol_frequency');
     substanceFollowUpStageRef.current = 'alcohol_frequency';
+    const alcoholQuestion =
+      type === 'Beer/Wine' ? 'How many units do you consume per sitting?' :
+      type === 'Spirits/Whisky' ? 'How many pegs or ml do you consume per sitting?' :
+      'How much do you consume per sitting across beer, wine and spirits?';
+    const alcoholExample =
+      type === 'Beer/Wine' ? '2 pints of beer' :
+      type === 'Spirits/Whisky' ? '60ml whisky per sitting' :
+      '1 pint of beer and 30ml of whisky';
     setTimeout(() => {
-      const botMsg: Message = { id: (Date.now() + 1).toString(), content: 'How often do you consume alcohol and roughly how much?', sender: 'bot', timestamp: new Date() };
+      const botMsg: Message = { id: (Date.now() + 1).toString(), content: alcoholQuestion, sender: 'bot', timestamp: new Date() };
       setMessages((prev) => [...prev, botMsg]);
-      setExampleText('2-3 times a week, 2 drinks each time');
+      setExampleText(alcoholExample);
     }, 600);
   };
 
