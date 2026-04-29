@@ -1668,6 +1668,7 @@ export function EditSubstancesBottomSheet({
     'Tobacco',
     'Alcohol',
     'Narcotics',
+    'Stopped',
     "I don't consume any substances",
   ];
 
@@ -1704,9 +1705,9 @@ export function EditSubstancesBottomSheet({
                 key={s}
                 onClick={() => !isDisabled && toggle(s)}
                 disabled={isDisabled}
-                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-left transition-all ${isSelected ? 'bg-[#c21b17] text-white shadow-md' : isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-[#c21b17] shadow-sm'} ${s === "I don't consume any substances" && !isSelected && !isDisabled ? 'border-2 border-green-500' : ''}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-left transition-all ${isSelected ? (s === 'Stopped' ? 'bg-amber-500 text-white shadow-md' : 'bg-[#c21b17] text-white shadow-md') : isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : s === 'Stopped' ? 'bg-white text-amber-600 shadow-sm' : 'bg-white text-[#c21b17] shadow-sm'} ${s === "I don't consume any substances" && !isSelected && !isDisabled ? 'border-2 border-green-500' : s === 'Stopped' && !isSelected && !isDisabled ? 'border-2 border-amber-400' : ''}`}
               >
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-white bg-white' : 'border-[#c21b17]'}`}>
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-white bg-white' : s === 'Stopped' ? 'border-amber-500' : 'border-[#c21b17]'}`}>
                   {isSelected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#c21b17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </div>
                 <span className="font-['Inter:Medium',sans-serif] font-medium text-[15px]">{s}</span>
