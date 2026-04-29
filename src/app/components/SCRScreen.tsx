@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 
 interface SCRScreenProps {
@@ -57,6 +57,10 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
   const [riskError, setRiskError] = useState(false);
   const [incomeError, setIncomeError] = useState(false);
 
+  const discrepancyRef = useRef<HTMLTextAreaElement>(null);
+  const riskRef = useRef<HTMLTextAreaElement>(null);
+  const incomeRef = useRef<HTMLTextAreaElement>(null);
+
   const handleAllYesToggle = (enabled: boolean) => {
     setAllYesEnabled(enabled);
     if (enabled) {
@@ -113,6 +117,13 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
       if (answers.foundDiscrepancy && discrepancyDetails.trim() === '') setDiscrepancyError(true);
       if (answers.riskAssociated && riskDetails.trim() === '') setRiskError(true);
       if (answers.confirmedIncome && incomeDetails.trim() === '') setIncomeError(true);
+      if (answers.foundDiscrepancy && discrepancyDetails.trim() === '') {
+        discrepancyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (answers.riskAssociated && riskDetails.trim() === '') {
+        riskRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (answers.confirmedIncome && incomeDetails.trim() === '') {
+        incomeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
     if (isFormValid()) {
@@ -229,6 +240,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
+                ref={discrepancyRef}
                 className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
                   discrepancyError ? 'border-red-500' : 'border-gray-200'
                 }`}
@@ -259,6 +271,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
+                ref={riskRef}
                 className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
                   riskError ? 'border-red-500' : 'border-gray-200'
                 }`}
@@ -289,6 +302,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
                 <span className="text-red-500"> *</span>
               </p>
               <textarea
+                ref={incomeRef}
                 className={`w-full border rounded-lg p-2 text-sm min-h-[60px] ${
                   incomeError ? 'border-red-500' : 'border-gray-200'
                 }`}

@@ -60,7 +60,9 @@ r a category
 26. ubstances questions, if use
 r selects a substance then the I don't consume any susbtances was getting disabled - it's fix
 ed now
-27. Removal of the auto-selection of the assets 
+27. Removal of the auto-selection of the assets
+28. SCR step "if yes, please provide more details" question free-form input added only for one question for testing. 
+29. Added for risk association question 
 Broken: 
 1. For open-ended questions, the system is not understanding the user values if comma is not added
 
