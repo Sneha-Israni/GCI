@@ -68,12 +68,15 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
         ...answers,
         metInPerson: true,
         explainedSuitability: true,
-        isRelated: true,
-        foundDiscrepancy: true,
-        riskAssociated: true,
+        isRelated: false,
+        foundDiscrepancy: false,
+        riskAssociated: false,
         confirmedIncome: true,
         ensuredDisclosures: true,
       });
+      setDiscrepancyDetails('');
+      setRiskDetails('');
+      setIncomeDetails('');
     } else {
       setAnswers({
         ...answers,
@@ -173,8 +176,8 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
         <div className="bg-[#fff7f7] rounded-2xl border border-[#c21b17] p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-[#c21b17]">Quick Fill: All Yes</p>
-              <p className="text-xs text-gray-600 mt-1">Auto-select "Yes" for all questions</p>
+              <p className="text-sm font-semibold text-[#c21b17]">Quick Fill: Standard Case</p>
+              <p className="text-xs text-gray-600 mt-1">Auto-fill recommended responses for a clean application</p>
             </div>
             <button
               onClick={() => handleAllYesToggle(!allYesEnabled)}
@@ -298,8 +301,11 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
           {answers.confirmedIncome === true && (
             <div className="mt-2">
               <p className="text-sm mb-1">
-                Please provide details
-                <span className="text-red-500"> *</span>
+                {allYesEnabled && incomeDetails.trim() === '' ? (
+                  <span className="text-amber-600">⚠️ Please provide income confirmation details</span>
+                ) : (
+                  <>Please provide details<span className="text-red-500"> *</span></>
+                )}
               </p>
               <textarea
                 ref={incomeRef}
