@@ -71,7 +71,7 @@ export function SCRScreen({ agentName = 'Girish Mane', onSubmit }: SCRScreenProp
         isRelated: false,
         foundDiscrepancy: false,
         riskAssociated: false,
-        confirmedIncome: true,
+        confirmedIncome: false,
         ensuredDisclosures: true,
       });
       setDiscrepancyDetails('');

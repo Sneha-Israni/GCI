@@ -11175,7 +11175,7 @@ Rules:
                   key={`step-${currentStep === 40 ? 'complete' : displayStep}`}
                   currentStep={currentStep === 40 ? 31 : displayStep}
                   totalSteps={31}
-                  stepTitle={currentStep === 40 ? "100%, You've made it! 🎉" : getStepTitle(currentStep)}
+                  stepTitle={currentStep === 40 ? "You've made it! 🎉" : getStepTitle(currentStep)}
                   className="w-[396px]"
                 />
               </div>
