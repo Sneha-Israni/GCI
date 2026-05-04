@@ -2200,6 +2200,7 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
   const isManualStopRef = React.useRef(false);
   const shouldAutoSendRef = React.useRef(false); // Track if we should auto-send when recording stops
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [exampleText, setExampleText] = useState('');
   const messageIdCounterRef = useRef(0);
 
@@ -5775,12 +5776,24 @@ function InsuranceOnboardingApp({ onLanguageChange }: { onLanguageChange: (lang:
     setCurrentStep(step);
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+
+    // Small delay to let DOM update first
+    setTimeout(() => {
+      const allMessages = container.querySelectorAll('[data-message]');
+      const lastMessage = allMessages[allMessages.length - 1] as HTMLElement;
+
+      if (lastMessage) {
+        const containerTop = container.getBoundingClientRect().top;
+        const messageTop = lastMessage.getBoundingClientRect().top;
+        const scrollOffset = messageTop - containerTop - 20;
+
+        container.scrollBy({ top: scrollOffset, behavior: 'smooth' });
+      }
+    }, 100);
   }, [messages]);
 
   // Cleanup audio monitoring when component unmounts or isListening changes
@@ -11204,11 +11217,11 @@ Rules:
               )}
 
               {/* Messages Container */}
-              <div className={`absolute ${currentStep >= 2 ? 'top-[165px]' : 'top-[135px]'} bottom-[104px] left-0 right-0 overflow-y-auto px-2`}>
+              <div ref={messagesContainerRef} className={`absolute ${currentStep >= 2 ? 'top-[165px]' : 'top-[135px]'} bottom-[104px] left-0 right-0 overflow-y-auto px-2`}>
             <div className="flex flex-col gap-4 py-4">
               <AnimatePresence mode="popLayout">
                 {messages.map((message) => (
-                  <div key={message.id}>
+                  <div key={message.id} data-message="true">
                     {message.isProfessionalDetailsCard && message.professionalData ? (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
